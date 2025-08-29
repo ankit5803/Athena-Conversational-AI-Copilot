@@ -1,85 +1,68 @@
 import requests
-from xml.etree import ElementTree as ET
-import os
-
+import xml.etree.ElementTree as ET
+import time
 
 BASE_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
-PDF_BASE = "https://www.ncbi.nlm.nih.gov/pmc/articles/"
 
+# Function to search PubMed and return list of PMIDs
 def search_pubmed(query, max_results=5):
-    """Search PubMed and return list of IDs"""
-    url = f"{BASE_URL}esearch.fcgi?db=pubmed&term={query}&retmax={max_results}&retmode=json"
-    response = requests.get(url)
-    data = response.json()
-    return data["esearchresult"]["idlist"]
-    # return data
+    url = f"{BASE_URL}esearch.fcgi"
+    params = {
+        "db": "pubmed",
+        "term": query,
+        "retmax": max_results,
+        "retmode": "xml"
+    }
+    response = requests.get(url, params=params)
+    time.sleep(1)  # ✅ Prevent hitting API rate limit
+    response.raise_for_status()
+    root = ET.fromstring(response.text)
+    ids = [id_elem.text for id_elem in root.findall(".//Id")]
+    return ids
 
-def fetch_pubmed_details(id_list, output_folder="data"):
-    """Fetch metadata + abstract + try to download PDF from PMC"""
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
 
-    ids = ",".join(id_list)
-    url = f"{BASE_URL}efetch.fcgi?db=pubmed&id={ids}&retmode=xml"
-    response = requests.get(url)
+# Function to fetch details for given PMIDs
+def fetch_pubmed_details(id_list):
+    if not id_list:
+        return []
     
-    root = ET.fromstring(response.content)
+    url = f"{BASE_URL}efetch.fcgi"
+    params = {
+        "db": "pubmed",
+        "id": ",".join(id_list),
+        "retmode": "xml"
+    }
+    response = requests.get(url, params=params)
+    time.sleep(1)  # ✅ Be nice to PubMed servers
+    response.raise_for_status()
+    root = ET.fromstring(response.text)
+
     papers = []
-    
     for article in root.findall(".//PubmedArticle"):
-        title = article.findtext(".//ArticleTitle", default="No title")
-        abstract = " ".join([a.text for a in article.findall(".//AbstractText") if a.text])
-        
-        authors = []
-        for author in article.findall(".//Author"):
-            last = author.findtext("LastName")
-            first = author.findtext("ForeName")
-            if last and first:
-                authors.append(f"{first} {last}")
-        
-        # PMID
-        pmid = article.findtext(".//PMID", default=None)
-        
-        # Try to get PMCID
-        pmcid = None
-        for id_elem in article.findall(".//ArticleId"):
-            if id_elem.attrib.get("IdType") == "pmc":
-                pmcid = id_elem.text.replace("PMC", "")
-        
-        pdf_path = None
-        if pmcid:
-            pdf_url = f"{PDF_BASE}PMC{pmcid}/pdf/"
-            try:
-                pdf_response = requests.get(pdf_url)
-                if pdf_response.status_code == 200 and pdf_response.headers["Content-Type"] == "application/pdf":
-                    safe_title = title.replace(" ", "_").replace("/", "_")[:50]
-                    pdf_path = os.path.join(output_folder, f"{safe_title}.pdf")
-                    with open(pdf_path, "wb") as f:
-                        f.write(pdf_response.content)
-                    print(f"📥 Downloaded PDF: {pdf_path}")
-            except Exception as e:
-                print(f"⚠️ Could not fetch PDF for {title}: {e}")
+        pmid_elem = article.find(".//PMID")
+        title_elem = article.find(".//ArticleTitle")
+        abstract_elem = article.find(".//Abstract/AbstractText")
+
+        pmid = pmid_elem.text if pmid_elem is not None else None
+        title = title_elem.text if title_elem is not None else None
+        abstract = abstract_elem.text if abstract_elem is not None else None
+
         papers.append({
             "pmid": pmid,
             "title": title,
-            "abstract": abstract,
-            "authors": authors,
-            "pmcid": pmcid,
-            "pdf_path": pdf_path
+            "abstract": abstract
         })
-        
+    
     return papers
 
 
+# Example usage
 if __name__ == "__main__":
     query = "Cancer"
-    ids = search_pubmed(query, max_results=5)
-    print(f"📌 Found PubMed IDs: {ids}")
-    
+    ids = search_pubmed(query, max_results=6)
     papers = fetch_pubmed_details(ids)
-    for p in papers:
-        print("\n🔹 Title:", p["title"])
-        print("Authors:", ", ".join(p["authors"]))
-        print("Abstract:", p["abstract"][:250], "...")
-        print("PMID:", p["pmid"], "| PMCID:", p["pmcid"])
-        print("PDF:", p["pdf_path"])
+
+    for paper in papers:
+        print(f"PMID: {paper['pmid']}")
+        print(f"Title: {paper['title']}")
+        print(f"Abstract: {paper['abstract']}\n")
