@@ -2,6 +2,7 @@ import requests
 from xml.etree import ElementTree as ET
 import os
 
+
 BASE_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
 PDF_BASE = "https://www.ncbi.nlm.nih.gov/pmc/articles/"
 
@@ -11,6 +12,7 @@ def search_pubmed(query, max_results=5):
     response = requests.get(url)
     data = response.json()
     return data["esearchresult"]["idlist"]
+    # return data
 
 def fetch_pubmed_details(id_list, output_folder="data"):
     """Fetch metadata + abstract + try to download PDF from PMC"""
@@ -57,15 +59,15 @@ def fetch_pubmed_details(id_list, output_folder="data"):
                     print(f"📥 Downloaded PDF: {pdf_path}")
             except Exception as e:
                 print(f"⚠️ Could not fetch PDF for {title}: {e}")
-        
         papers.append({
+            "pmid": pmid,
             "title": title,
             "abstract": abstract,
             "authors": authors,
-            "pmid": pmid,
             "pmcid": pmcid,
             "pdf_path": pdf_path
         })
+        
     return papers
 
 
