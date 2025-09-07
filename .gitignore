@@ -10,6 +10,7 @@ build/
 # Virtual Environment
 venv/
 myvenv/
+.env
 .env/
 .env.bak/
 ENV/
