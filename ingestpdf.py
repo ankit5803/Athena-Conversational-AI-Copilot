@@ -10,7 +10,7 @@ os.makedirs(PDF_DIR, exist_ok=True)
 def fetch_arxiv(query="machine learning", max_results=5):
     """
     Fetch metadata from arXiv based on query.
-    Returns a list of dicts with title, abstract, and pdf_url.
+    Returns a list of dicts with arxiv_id, title, abstract, and pdf_url.
     """
     base_url = "http://export.arxiv.org/api/query"
     params = {
@@ -30,6 +30,11 @@ def fetch_arxiv(query="machine learning", max_results=5):
     for entry in feed.entries:
         title = entry.title
         abstract = entry.summary.replace("\n", " ").strip()
+
+        # ✅ Extract base arXiv ID (remove version suffix like v2)
+        arxiv_id_full = entry.id.split("/")[-1]  # e.g., "2409.12345v2"
+        arxiv_id = arxiv_id_full.split("v")[0]   # e.g., "2409.12345"
+
         pdf_url = None
         for link in entry.links:
             if link.rel == "alternate":
@@ -40,12 +45,14 @@ def fetch_arxiv(query="machine learning", max_results=5):
 
         if pdf_url:
             articles.append({
+                "arxiv_id": arxiv_id,   # ✅ only base id
                 "title": title,
                 "abstract": abstract,
                 "pdf_url": pdf_url
             })
 
     return articles
+
 
 def download_pdf(pdf_url, filename):
     """Download PDF and save locally."""
