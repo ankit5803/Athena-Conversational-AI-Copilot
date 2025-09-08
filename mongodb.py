@@ -58,4 +58,4 @@ def upload_to_mongo(query, max_results=5):
 
 
 if __name__ == "__main__":
-    upload_to_mongo("Cancer", 10)
+    upload_to_mongo("AI", 10)
