@@ -1,97 +1,86 @@
-# preprocess_pipeline.py
-
+# preprocessed_pipeline.py
 from pymongo import MongoClient
 import gridfs
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.embeddings.openai import OpenAIEmbeddings
 import os
 from dotenv import load_dotenv
-from tqdm import tqdm
-from PyPDF2 import PdfReader
-import json
 
-# ---------------------- Load environment ----------------------
 load_dotenv()
+
 MONGO_URL = os.getenv("MONGODB_URI")
 DB_NAME = "arxiv_db"
 COLLECTION_NAME = "papers"
 
-# ---------------------- Semantic Chunking ----------------------
-def split_into_chunks(text, chunk_size=800, overlap=50):
-    """
-    Splits text into overlapping chunks.
-    """
-    chunks = []
-    start = 0
-    text_length = len(text)
-    while start < text_length:
-        end = min(start + chunk_size, text_length)
-        chunk = text[start:end]
-        chunks.append(chunk)
-        start += chunk_size - overlap
-    return chunks
+# Chunking settings
+CHUNK_SIZE = 800
+CHUNK_OVERLAP = 50
 
-# ---------------------- Fetch PDFs from MongoDB ----------------------
 def fetch_pdfs_from_mongo():
     client = MongoClient(MONGO_URL)
     db = client[DB_NAME]
     papers_collection = db[COLLECTION_NAME]
     fs = gridfs.GridFS(db)
 
-    all_chunks = []
-
-    papers = list(papers_collection.find({}))
-    if not papers:
-        print("⚠️ No papers found in MongoDB!")
-        return []
-
-    for paper in tqdm(papers, desc="Processing papers"):
-        try:
-            file_id = paper.get("file_id")
-            if not file_id:
-                print(f"⚠️ No file_id for paper {paper.get('arxiv_id')}")
-                continue
-
-            pdf_bytes = fs.get(file_id).read()
-            reader = PdfReader(io.BytesIO(pdf_bytes))
-            text = ""
-            for page in reader.pages:
-                page_text = page.extract_text()
-                if page_text:
-                    text += page_text + "\n"
-
-            # Skip empty PDFs
-            if not text.strip():
-                print(f"⚠️ Empty PDF: {paper.get('arxiv_id')}")
-                continue
-
-            # Split text into chunks
-            chunks = split_into_chunks(text)
-            # Save metadata for each chunk
-            for chunk in chunks:
-                all_chunks.append({
-                    "arxiv_id": paper["arxiv_id"],
-                    "title": paper["title"],
-                    "chunk": chunk
-                })
-
-        except Exception as e:
-            print(f"❌ Error processing {paper.get('arxiv_id')}: {e}")
-
+    pdfs = []
+    for paper in papers_collection.find():
+        file_id = paper["file_id"]
+        pdf_content = fs.get(file_id).read()
+        pdfs.append({
+            "arxiv_id": paper["arxiv_id"],
+            "title": paper["title"],
+            "content": pdf_content
+        })
     client.close()
-    return all_chunks
+    return pdfs
 
-# ---------------------- Main ----------------------
+def extract_text_from_pdf(pdf_bytes):
+    from io import BytesIO
+    from PyPDF2 import PdfReader
+
+    reader = PdfReader(BytesIO(pdf_bytes))
+    text = ""
+    for page in reader.pages:
+        text += page.extract_text() + "\n"
+    return text
+
+def preprocess_and_embed(pdfs):
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=CHUNK_SIZE, 
+        chunk_overlap=CHUNK_OVERLAP
+    )
+
+    embeddings_model = OpenAIEmbeddings()  # make sure OPENAI_API_KEY is in .env
+
+    embedded_chunks = []
+
+    for paper in pdfs:
+        text = extract_text_from_pdf(paper["content"])
+        chunks = text_splitter.split_text(text)
+
+        for i, chunk in enumerate(chunks, start=1):
+            vector = embeddings_model.embed_query(chunk)
+            embedded_chunks.append({
+                "arxiv_id": paper["arxiv_id"],
+                "title": paper["title"],
+                "chunk_index": i,
+                "chunk_text": chunk,
+                "embedding": vector
+            })
+    return embedded_chunks
+
 if __name__ == "__main__":
-    import io
+    print("Fetching PDFs from MongoDB...")
+    pdfs = fetch_pdfs_from_mongo()
+    print(f"Fetched {len(pdfs)} papers.")
 
-    chunks = fetch_pdfs_from_mongo()
-    if chunks:
-        with open("preprocessed_chunks.json", "w", encoding="utf-8") as f:
-            json.dump(chunks, f, ensure_ascii=False, indent=2)
-        print(f"✅ Preprocessing complete! {len(chunks)} chunks saved to preprocessed_chunks.json")
+    print("Processing and generating embeddings...")
+    embedded_chunks = preprocess_and_embed(pdfs)
+    print(f"✅ Done! Generated {len(embedded_chunks)} embedded chunks.")
 
-        # Print first 2 chunks for verification
-        print("\n--- Sample Chunks ---")
-        for c in chunks[:2]:
-            print(f"Title: {c['title']}\nChunk:\n{c['chunk'][:500]}...\n")
-    else:
-        print("⚠️ No chunks generated.")
+    # For testing, just print a sample
+    print("--- Sample Embedded Chunk ---")
+    print("Title:", embedded_chunks[0]["title"])
+    print("Chunk index:", embedded_chunks[0]["chunk_index"])
+    print("Text snippet:", embedded_chunks[0]["chunk_text"][:200])
+    print("Embedding vector length:", len(embedded_chunks[0]["embedding"]))
