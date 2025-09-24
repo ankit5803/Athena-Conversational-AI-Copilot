@@ -20,13 +20,26 @@ embed_model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
 
 # ===== Load a free HuggingFace LLM (Mistral-7B-Instruct) =====
 # You can swap with "HuggingFaceH4/zephyr-7b-beta" if you want a lighter model.
+# qa_model = pipeline(
+#     "text-generation",
+#     model="mistralai/Mistral-7B-Instruct-v0.2",
+#     device_map="auto",
+#     torch_dtype="auto"
+# )
+# qa_model = pipeline(
+#     "text-generation",
+#     model="HuggingFaceH4/zephyr-7b-beta",  # <-- public model
+#     device_map="auto",
+#     dtype="auto"
+# )
+
+
 qa_model = pipeline(
     "text-generation",
-    model="mistralai/Mistral-7B-Instruct-v0.2",
+    model="distilgpt2",  # <-- public model
     device_map="auto",
-    torch_dtype="auto"
+    dtype="auto"
 )
-
 # ===== RAG function =====
 def rag_query(query, top_k=5, max_new_tokens=300):
     # Step 1: Embed the query
