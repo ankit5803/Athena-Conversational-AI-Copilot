@@ -72,6 +72,8 @@ Context:
 Question: {query}
 Answer:"""
     
+    print(prompt)
+    
     # Step 5: Generate with Grok-4 Fast (via OpenRouter)
     completion = client.chat.completions.create(
         model="x-ai/grok-4-fast:free",
