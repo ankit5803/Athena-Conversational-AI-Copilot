@@ -4,14 +4,48 @@ import gridfs
 from dotenv import load_dotenv
 import os
 import feedparser
+from openai import OpenAI
 
 load_dotenv()
 
 MONGO_URL = os.getenv("MONGODB_URI")  # Atlas URI from .env
 DB_NAME = "arxiv_db"
 COLLECTION_NAME = "papers"
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+client = OpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key=OPENROUTER_API_KEY,
+)
 
+def is_contextual(title: str, abstract: str) -> bool:
+    bad_keywords = [
+        "scientometric", "bibliometric", "patent analysis",
+        "citation", "journal mapping", "publication trends"
+    ]
+    combined = (title + " " + abstract).lower()
+    return not any(bad_kw in combined for bad_kw in bad_keywords)
+def extract_tags(query: str) -> list[str]:
+    completion = client.chat.completions.create(
+        model="deepseek/deepseek-chat-v3.1:free",
+        messages=[
+            {"role": "system", "content": "Extract 3-5 short keywords or topics from the user query for searching in arXiv. Return only comma-separated keywords."},
+            {"role": "user", "content": query}
+        ],
+        max_tokens=50,
+    )
+    tags_text = completion.choices[0].message.content.strip()
+    return [tag.strip() for tag in tags_text.split(",") if tag.strip()]
 
+def expand_tags(tags: list[str]) -> list[str]:
+    expanded = []
+    for tag in tags:
+        expanded.append(tag)
+        expanded.append(f"{tag} review")
+        expanded.append(f"{tag} overview")
+        expanded.append(f"{tag} introduction")
+        expanded.append(f"{tag} fundamentals")
+        expanded.append(f"{tag} basics")
+    return expanded
 def fetch_arxiv(query="machine learning", max_results=5):
     """
     Fetch metadata from arXiv based on query.
@@ -70,11 +104,14 @@ def upload_to_mongo(query, max_results=5):
 
     fs = gridfs.GridFS(db)  # Initialize GridFS once
 
-    for i, paper in enumerate(articles, start=1):
+    for paper in articles:
         try:
             # Check if paper already exists
             if papers_collection.find_one({"arxiv_id": paper["arxiv_id"]}):
                 print(f"⚠️ Duplicate found, skipping: {paper['title']} [{paper['arxiv_id']}]")
+                continue
+            if not is_contextual(paper["title"], paper["abstract"]):
+                print(f"⚠️ Skipped irrelevant paper: {paper['title']}")
                 continue
 
             # Download PDF content
@@ -90,7 +127,8 @@ def upload_to_mongo(query, max_results=5):
                 "title": paper["title"],
                 "abstract": paper["abstract"],
                 "pdf_url": paper["pdf_url"],
-                "file_id": file_id
+                "file_id": file_id,
+                "pinecone_indexed": False  # New field to track indexing status
             }
 
             # Insert into MongoDB
@@ -104,4 +142,10 @@ def upload_to_mongo(query, max_results=5):
 
 
 if __name__ == "__main__":
-    upload_to_mongo("AI", 10)
+    topic = input("Enter topic to ingest : ")
+    tags = extract_tags(topic)
+    print(f"🔖 Extracted tags: {tags}")
+    expanded_tags = expand_tags(tags)
+    print(f"🔖 Expanded tags: {expanded_tags}")
+    for tag in expanded_tags:
+        upload_to_mongo(tag,2)
