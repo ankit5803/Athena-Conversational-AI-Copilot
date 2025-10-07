@@ -1,12 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import LiquidEther from "./components/liquidether";
-import Hyperspeed from "./components/hyperspeed";
-import DarkVeil from "./components/darkveil";
+import LiquidEther from "../components/liquidether";
+import Hyperspeed from "../components/hyperspeed";
+import DarkVeil from "../components/darkveil";
 import { motion } from "framer-motion";
-import Header from "./components/header";
-import Footer from "./components/footer";
+import Header from "../components/header";
+import Footer from "../components/footer";
 
 export default function Home() {
   return (
@@ -127,7 +127,7 @@ export default function Home() {
       /> */}
       <DarkVeil
         speed={1.5}
-        hueShift={100}
+        hueShift={250}
         warpAmount={0.5}
         noiseIntensity={0.02}
         scanlineFrequency={5}
