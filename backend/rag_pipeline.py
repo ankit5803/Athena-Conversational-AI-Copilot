@@ -113,14 +113,14 @@ def rag_query(query, top_k=5, max_new_tokens=300,threshold=0.2):
     prompt = f"""You are a helpful assistant. Use the context below to answer the question.
     - Ignore URLs or incomplete references.
     -If the context does not fully answer the question or is fully academic or not explanatory,then provide a basic overview from your own knowledge to fill gaps
-    -Also,please dont forget to answer if the provided context is helpful or not.
+    
 
 Context:
 {context_text}
 
 Question: {query}
 Answer:"""
-    
+    # -Also,please dont forget to answer if the provided context is helpful or not.
     # print(prompt)
     
     # Step 5: Generate with Grok-4 Fast (via OpenRouter)
