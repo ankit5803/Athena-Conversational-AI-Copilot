@@ -1,5 +1,11 @@
 "use client";
-
+import {
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+  SignedIn,
+} from "@clerk/nextjs";
 import Image from "next/image";
 import LiquidEther from "../components/liquidether";
 import Hyperspeed from "../components/hyperspeed";
@@ -77,12 +83,21 @@ export default function Home() {
           }}
           className="mt-5 flex flex-wrap items-center justify-center gap-4"
         >
-          <button className="w-30 cursor-pointer transform rounded-full bg-black px-6 py-2 font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">
-            Log in
-          </button>
-          <button className="w-30 cursor-pointer transform rounded-full border border-gray-300 bg-white px-6 py-2 font-medium text-black transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-100 dark:border-gray-700 dark:bg-black dark:text-white dark:hover:bg-gray-900">
-            Sign up
-          </button>
+          <SignedOut>
+            <SignInButton>
+              <button className="w-30 cursor-pointer transform rounded-full bg-black px-6 py-2 font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">
+                Log in
+              </button>
+            </SignInButton>
+            <SignUpButton>
+              <button className="w-30 cursor-pointer transform rounded-full border border-gray-300 bg-white px-6 py-2 font-medium text-black transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-100 dark:border-gray-700 dark:bg-black dark:text-white dark:hover:bg-gray-900">
+                Sign up
+              </button>
+            </SignUpButton>
+          </SignedOut>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
         </motion.div>
         <Footer />
       </div>
