@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@chakra-ui/react": "^3.27.1",
+    "@clerk/nextjs": "^6.33.3",
     "framer-motion": "^12.23.22",
     "next": "15.5.4",
     "ogl": "^1.0.11",
