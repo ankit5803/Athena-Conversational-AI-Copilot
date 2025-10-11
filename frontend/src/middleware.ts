@@ -1,7 +1,31 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
-
-export default clerkMiddleware();
-
+import { AuthenticateWithRedirectCallback } from "@clerk/nextjs";
+import {
+  clerkMiddleware,
+  ClerkMiddlewareAuth,
+  createRouteMatcher,
+} from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+const isProtectedRoute = createRouteMatcher("/chat"); // Add protected routes here, such as /dashboardexport default
+export default clerkMiddleware(
+  async (auth: ClerkMiddlewareAuth, req) => {
+    const { isAuthenticated } = await auth();
+    console.log("isAuthenticated", isAuthenticated);
+    if (!isAuthenticated && isProtectedRoute(req)) {
+      // const url = req.nextUrl.clone();
+      // url.pathname = "/";
+      return NextResponse.redirect(new URL("/", req.url)); // Redirect to the home page if not authenticated
+    }
+    if (isAuthenticated && req.nextUrl.pathname === "/") {
+      return NextResponse.redirect(new URL("/chat", req.url)); // Redirect to the chat page if authenticated
+    }
+    // AuthenticateWithRedirectCallback(req, {
+    //   afterSignInUrl: "/chat", // Redirect to /chat after sign-in
+    //   afterSignUpUrl: "/chat", // Redirect to /chat after sign-up
+    // });
+    return NextResponse.next();
+  }
+  // { debug: true }
+);
 export const config = {
   matcher: [
     // Skip Next.js internals and all static files, unless found in search params
