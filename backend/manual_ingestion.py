@@ -1,3 +1,4 @@
+#manualingestion.py
 from mongodb import upload_to_mongo, extract_tags, expand_tags
 from pinecone_ingestion import run_ingestion
 
