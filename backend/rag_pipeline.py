@@ -6,6 +6,7 @@ from mongodb import upload_to_mongo, extract_tags, expand_tags
 from pinecone import Pinecone
 from sentence_transformers import SentenceTransformer
 from openai import OpenAI
+from groq import Groq
 from pinecone_ingestion import run_ingestion
 
 # ===== Load env variables =====
@@ -13,7 +14,7 @@ load_dotenv()
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 INDEX_NAME = "arxiv-papers"
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 # ===== Initialize Pinecone =====
 pc = Pinecone(api_key=PINECONE_API_KEY)
 index = pc.Index(INDEX_NAME)
@@ -22,10 +23,12 @@ index = pc.Index(INDEX_NAME)
 embed_model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
 
 # ===== Initialize OpenRouter Client =====
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key=OPENROUTER_API_KEY,
-)
+# client = OpenAI(
+#     base_url="https://openrouter.ai/api/v1",
+#     api_key=OPENROUTER_API_KEY,
+# )
+
+client = Groq(api_key=GROQ_API_KEY)
 
 def clean_chunk(text):
     # Remove incomplete URLs
@@ -124,20 +127,42 @@ Answer:"""
     # print(prompt)
     
     # Step 5: Generate with Grok-4 Fast (via OpenRouter)
-    completion = client.chat.completions.create(
-        model="x-ai/grok-4-fast",
-        messages=[
-            {"role": "system", "content": "You are a knowledgeable assistant for answering questions using provided context."},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=max_new_tokens,
-        # reasoning_effort="medium",
-        temperature=0.4,
-    )
-    # response = qa_model(prompt, max_new_tokens=max_new_tokens, do_sample=True)
-    # return response[0]["generated_text"]
-    return completion.choices[0].message.content
+    # completion = client.chat.completions.create(
+    #     model="mistralai/mistral-nemo:free",
+    #     messages=[
+    #         {"role": "system", "content": "You are a knowledgeable assistant for answering questions using provided context."},
+    #         {"role": "user", "content": prompt}
+    #     ],
+    #     max_tokens=max_new_tokens,
+    #     reasoning_effort="medium",
+    #     temperature=1,
+    # )
+    # # response = qa_model(prompt, max_new_tokens=max_new_tokens, do_sample=True)
+    # # return response[0]["generated_text"]
+    # return completion.choices[0].message.content
 
+
+    completion = client.chat.completions.create(
+    model="openai/gpt-oss-20b",
+    messages=[
+      
+          {"role": "system", "content": "You are a knowledgeable assistant for answering questions using provided context."},
+        {"role": "user",
+        "content": prompt}
+    ],
+    temperature=1,
+    max_completion_tokens=max_new_tokens,
+    top_p=1,
+    reasoning_effort="medium",
+    stream=True,
+    stop=None
+)
+    complete_answer=""
+    
+    for chunk in completion:
+        complete_answer += chunk.choices[0].delta.content or "" + "\n"
+
+    return complete_answer
 # ===== Main =====
 if __name__ == "__main__":
     while True:
