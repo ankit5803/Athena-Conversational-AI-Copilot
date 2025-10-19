@@ -84,7 +84,7 @@ def background_ingestion(query, top_n_per_tag=2):
 
 
 # ===== RAG function =====
-def rag_query(query, top_k=5, max_new_tokens=300,threshold=0.2):
+def rag_query(query, top_k=5, max_new_tokens=300,threshold=0.2,stream=True):
     # Step 1: Embed the query
     query_embedding = embed_model.encode([query]).tolist()
 
@@ -157,12 +157,21 @@ Answer:"""
     stream=True,
     stop=None
 )
-    complete_answer=""
     
-    for chunk in completion:
-        complete_answer += chunk.choices[0].delta.content or "" + "\n"
+    if stream:
+        for chunk in completion:
+            token = chunk.choices[0].delta.content or ""
+            if token.strip():
+                yield token
+        return
 
-    return complete_answer
+    else:
+        complete_answer=""
+    
+        for chunk in completion:
+            complete_answer += chunk.choices[0].delta.content or "" + "\n"
+
+        return complete_answer
 # ===== Main =====
 if __name__ == "__main__":
     while True:

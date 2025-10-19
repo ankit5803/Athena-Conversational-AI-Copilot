@@ -10,24 +10,17 @@ import {
 } from "react";
 import { Send, Loader2, Plus, Mic } from "lucide-react";
 import ComposerActionsPopover from "./ComposerActionsPopover";
+import { ComposerHandle } from "@/interfaces/interface";
+import { useChat } from "./contexts/ChatContext";
 import { cls } from "../utils/util";
 
-export interface ComposerHandle {
-  insertTemplate: (templateContent: string) => void;
-  focus: () => void;
-}
-
-interface ComposerProps {
-  onSend?: (text: string) => Promise<void> | void;
-  busy?: boolean;
-}
-
-const Composer = forwardRef<ComposerHandle, ComposerProps>(function Composer(
-  { onSend, busy = false },
+const Composer = forwardRef<ComposerHandle>(function Composer(
+  {},
   ref: Ref<ComposerHandle>
 ) {
+  const { sendMessage } = useChat();
   const [value, setValue] = useState<string>("");
-  const [sending, setSending] = useState<boolean>(false);
+  const [busy, setBusy] = useState<boolean>(false);
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const [lineCount, setLineCount] = useState<number>(1);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -82,17 +75,22 @@ const Composer = forwardRef<ComposerHandle, ComposerProps>(function Composer(
   );
 
   async function handleSend() {
-    if (!value.trim() || sending) return;
-    setSending(true);
+    if (!value.trim() || busy) return;
+    setBusy(true);
     try {
-      await onSend?.(value);
+      await sendMessage(value);
       setValue("");
       inputRef.current?.focus();
     } finally {
-      setSending(false);
+      setBusy(false);
     }
   }
-
+  // async (text) => {
+  //   if (!text.trim()) return;
+  //   setBusy(true);
+  //   await sendMessage(text);
+  //   setBusy(false);
+  // };
   const hasContent = value.length > 0;
 
   return (
@@ -110,7 +108,7 @@ const Composer = forwardRef<ComposerHandle, ComposerProps>(function Composer(
             onChange={(e) => setValue(e.target.value)}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            placeholder="How can I help you today?"
+            placeholder="Ask me anything"
             rows={1}
             className={cls(
               "w-full resize-none bg-transparent text-sm outline-none placeholder:text-zinc-400 transition-all duration-200",
@@ -132,7 +130,7 @@ const Composer = forwardRef<ComposerHandle, ComposerProps>(function Composer(
         <div className="flex items-center justify-between mt-2">
           <ComposerActionsPopover>
             <button
-              className="inline-flex shrink-0 items-center justify-center rounded-full p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
+              className="inline-flex shrink-0 items-center justify-center rounded-full p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors cursor-pointer"
               title="Add attachment"
             >
               <Plus className="h-4 w-4" />
@@ -141,21 +139,22 @@ const Composer = forwardRef<ComposerHandle, ComposerProps>(function Composer(
 
           <div className="flex items-center gap-1 shrink-0">
             <button
-              className="inline-flex items-center justify-center rounded-full p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
+              className="inline-flex items-center justify-center rounded-full p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors cursor-pointer"
               title="Voice input"
             >
               <Mic className="h-4 w-4" />
             </button>
             <button
               onClick={handleSend}
-              disabled={sending || busy || !value.trim()}
+              disabled={busy || !value.trim()}
               className={cls(
                 "inline-flex shrink-0 items-center gap-2 rounded-full bg-zinc-900 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-white dark:text-zinc-900",
-                (sending || busy || !value.trim()) &&
-                  "opacity-50 cursor-not-allowed"
+                busy || !value.trim()
+                  ? "opacity-50 cursor-not-allowed"
+                  : "cursor-pointer"
               )}
             >
-              {sending || busy ? (
+              {busy ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Send className="h-4 w-4" />

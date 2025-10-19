@@ -2,11 +2,11 @@ import { ReactNode, Dispatch, SetStateAction, RefObject } from "react";
 
 export type Role = "user" | "assistant";
 interface MessageType {
-  id: string;
+  _id: string;
   role: Role;
   content: string;
-  createdAt: string;
-  editedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface Conversation {
@@ -53,19 +53,9 @@ interface SidebarProps {
   setTheme: Dispatch<SetStateAction<"light" | "dark">>;
   collapsed: CollapsedState;
   setCollapsed: Dispatch<SetStateAction<CollapsedState>>;
-  conversations: Conversation[];
-  pinned: Conversation[];
-  recent: Conversation[];
-  folders: Folder[];
-  folderCounts: Record<string, number>;
-  selectedId: string | null;
-  onSelect: (id: string) => void;
-  togglePin: (id: string) => void;
   query: string;
   setQuery: Dispatch<SetStateAction<string>>;
   searchRef: RefObject<HTMLInputElement | null>;
-  createFolder: (folderName: string) => void;
-  createNewChat: () => void;
   templates: Template[];
   setTemplates: Dispatch<SetStateAction<Template[]>>;
   onUseTemplate: (template: Template) => void;
@@ -78,14 +68,11 @@ interface SidebarSectionProps {
   title: string;
   children?: ReactNode;
   collapsed: boolean;
-  onToggle: () => void;
 }
 
 interface ConversationRowProps {
   data: Conversation;
   active: boolean;
-  onSelect: () => void;
-  onTogglePin: () => void;
   showMeta?: boolean;
 }
 
@@ -93,8 +80,6 @@ interface FolderRowProps {
   name: string;
   count: number;
   conversations?: Conversation[];
-  selectedId: string | null;
-  onSelect: (id: string) => void;
   togglePin: (id: string) => void;
   onDeleteFolder?: (folderName: string) => void;
   onRenameFolder?: (oldName: string, newName: string) => void;
@@ -129,24 +114,12 @@ interface CreateTemplateModalProps {
 interface SearchModalProps {
   isOpen: boolean;
   onClose: () => void;
-  conversations: Conversation[];
-  selectedId?: string | null;
-  onSelect: (id: string) => void;
-  togglePin?: (id: string) => void;
-  createNewChat: () => void;
 }
 interface SettingsPopoverProps {
   children: ReactNode;
 }
-interface HeaderProps {
-  createNewChat: () => void;
-  sidebarCollapsed: boolean;
-  setSidebarOpen: (open: boolean) => void;
-}
 
 interface ChatPaneProps {
-  conversation?: Conversation | null;
-  onSend?: (text: string) => Promise<void> | void | null;
   onEditMessage?: (id: string, content: string) => void;
   onResendMessage?: (id: string) => void;
   isThinking?: boolean;
@@ -158,10 +131,14 @@ interface ChatPaneHandle {
 }
 
 interface ActionItem {
-  icon: React.ComponentType<{ className?: string }> | (() => any);
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
   action: () => void;
   badge?: string;
+}
+export interface ComposerHandle {
+  insertTemplate: (templateContent: string) => void;
+  focus: () => void;
 }
 
 interface ComposerActionsPopoverProps {
@@ -193,7 +170,7 @@ export type {
   CreateTemplateModalProps,
   SearchModalProps,
   SettingsPopoverProps,
-  HeaderProps,
+  // HeaderProps,
   Chatbot,
   ActionItem,
   ComposerActionsPopoverProps,

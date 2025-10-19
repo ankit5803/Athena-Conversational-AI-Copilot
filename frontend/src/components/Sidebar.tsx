@@ -24,8 +24,10 @@ import CreateTemplateModal from "./CreateTemplateModal";
 import SearchModal from "./SearchModal";
 import SettingsPopover from "./SettingsPopover";
 import { cls } from "../utils/util";
-import { useState, Dispatch, SetStateAction, RefObject } from "react";
-
+import { useState } from "react";
+import Image from "next/image";
+import { useUser } from "@clerk/clerk-react";
+import { useChat } from "./contexts/ChatContext";
 // === Props ===
 
 // === Component ===
@@ -33,28 +35,30 @@ export default function Sidebar({
   open,
   onClose,
   theme,
+
   setTheme,
   collapsed,
   setCollapsed,
-  conversations,
-  pinned,
-  recent,
-  folders,
-  folderCounts,
-  selectedId,
-  onSelect,
-  togglePin,
   query,
   setQuery,
   searchRef,
-  createFolder,
-  createNewChat,
   templates = [],
   setTemplates,
   onUseTemplate,
   sidebarCollapsed = false,
   setSidebarCollapsed,
 }: SidebarProps) {
+  const { user } = useUser();
+  const {
+    conversations,
+    createConversation,
+    pinned,
+    togglePin,
+    folders,
+    folderCounts,
+    recent,
+    selectedConversation,
+  } = useChat();
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
   const [showCreateTemplateModal, setShowCreateTemplateModal] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
@@ -65,7 +69,8 @@ export default function Sidebar({
     conversations.filter((conv) => conv.folder === folderName);
 
   const handleCreateFolder = (folderName: string) => {
-    createFolder(folderName);
+    // createFolder(folderName);
+    console.log("Create folder:", folderName);
   };
 
   const handleDeleteFolder = (folderName: string) => {
@@ -138,7 +143,7 @@ export default function Sidebar({
         <div className="flex items-center justify-center border-b border-zinc-200/60 px-3 py-3 dark:border-zinc-800">
           <button
             onClick={() => setSidebarCollapsed(false)}
-            className="rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
             aria-label="Open sidebar"
             title="Open sidebar"
           >
@@ -148,8 +153,8 @@ export default function Sidebar({
 
         <div className="flex flex-col items-center gap-4 pt-4">
           <button
-            onClick={createNewChat}
-            className="rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            onClick={() => createConversation}
+            className="rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
             title="New Chat"
           >
             <Plus className="h-5 w-5" />
@@ -157,14 +162,14 @@ export default function Sidebar({
 
           <button
             onClick={() => setShowSearchModal(true)}
-            className="rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
             title="Search"
           >
             <SearchIcon className="h-5 w-5" />
           </button>
 
           <button
-            className="rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
             title="Folders"
           >
             <FolderIcon className="h-5 w-5" />
@@ -173,7 +178,7 @@ export default function Sidebar({
           <div className="mt-auto mb-4">
             <SettingsPopover>
               <button
-                className="rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                className="rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
                 title="Settings"
               >
                 <Settings className="h-5 w-5" />
@@ -229,7 +234,7 @@ export default function Sidebar({
               <div className="ml-auto flex items-center gap-1">
                 <button
                   onClick={() => setSidebarCollapsed(true)}
-                  className="hidden md:block rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  className="hidden md:block rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
                   aria-label="Close sidebar"
                 >
                   <PanelLeftClose className="h-5 w-5" />
@@ -237,7 +242,7 @@ export default function Sidebar({
 
                 <button
                   onClick={onClose}
-                  className="md:hidden rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  className="md:hidden rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
                   aria-label="Close sidebar"
                 >
                   <PanelLeftClose className="h-5 w-5" />
@@ -269,8 +274,11 @@ export default function Sidebar({
             {/* New Chat Button */}
             <div className="px-3 pt-3">
               <button
-                onClick={createNewChat}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-white dark:text-zinc-900"
+                onClick={() => [
+                  createConversation(),
+                  console.log("Recent conversations:", recent),
+                ]}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-white dark:text-zinc-900 cursor-pointer"
                 title="New Chat (⌘N)"
               >
                 <Plus className="h-4 w-4" /> Start New Chat
@@ -284,9 +292,6 @@ export default function Sidebar({
                 icon={<Star className="h-4 w-4" />}
                 title="PINNED CHATS"
                 collapsed={collapsed.pinned}
-                onToggle={() =>
-                  setCollapsed((s) => ({ ...s, pinned: !s.pinned }))
-                }
               >
                 {pinned.length === 0 ? (
                   <div className="select-none rounded-lg border border-dashed px-3 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
@@ -297,9 +302,7 @@ export default function Sidebar({
                     <ConversationRow
                       key={c.id}
                       data={c}
-                      active={c.id === selectedId}
-                      onSelect={() => onSelect(c.id)}
-                      onTogglePin={() => togglePin(c.id)}
+                      active={c.id === selectedConversation?.id}
                     />
                   ))
                 )}
@@ -310,9 +313,6 @@ export default function Sidebar({
                 icon={<Clock className="h-4 w-4" />}
                 title="RECENT"
                 collapsed={collapsed.recent}
-                onToggle={() =>
-                  setCollapsed((s) => ({ ...s, recent: !s.recent }))
-                }
               >
                 {recent.length === 0 ? (
                   <div className="select-none rounded-lg border border-dashed px-3 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
@@ -320,14 +320,13 @@ export default function Sidebar({
                   </div>
                 ) : (
                   recent.map((c) => (
-                    <ConversationRow
-                      key={c.id}
-                      data={c}
-                      active={c.id === selectedId}
-                      onSelect={() => onSelect(c.id)}
-                      onTogglePin={() => togglePin(c.id)}
-                      showMeta
-                    />
+                    <div key={c.id}>
+                      <ConversationRow
+                        data={c}
+                        active={c.id === selectedConversation?.id}
+                        showMeta
+                      />
+                    </div>
                   ))
                 )}
               </SidebarSection>
@@ -337,9 +336,6 @@ export default function Sidebar({
                 icon={<FolderIcon className="h-4 w-4" />}
                 title="FOLDERS"
                 collapsed={collapsed.folders}
-                onToggle={() =>
-                  setCollapsed((s) => ({ ...s, folders: !s.folders }))
-                }
               >
                 <div className="-mx-1">
                   <button
@@ -355,8 +351,6 @@ export default function Sidebar({
                       name={f.name}
                       count={folderCounts[f.name] || 0}
                       conversations={getConversationsByFolder(f.name)}
-                      selectedId={selectedId}
-                      onSelect={onSelect}
                       togglePin={togglePin}
                       onDeleteFolder={handleDeleteFolder}
                       onRenameFolder={handleRenameFolder}
@@ -366,13 +360,11 @@ export default function Sidebar({
               </SidebarSection>
 
               {/* Templates */}
-              <SidebarSection
+              {/* <SidebarSection
                 icon={<FileText className="h-4 w-4" />}
                 title="TEMPLATES"
                 collapsed={collapsed.templates}
-                onToggle={() =>
-                  setCollapsed((s) => ({ ...s, templates: !s.templates }))
-                }
+                
               >
                 <div className="-mx-1">
                   <button
@@ -401,14 +393,14 @@ export default function Sidebar({
                     </div>
                   )}
                 </div>
-              </SidebarSection>
+              </SidebarSection> */}
             </nav>
 
             {/* Footer */}
             <div className="mt-auto border-t border-zinc-200/60 px-3 py-3 dark:border-zinc-800">
               <div className="flex items-center gap-2">
                 <SettingsPopover>
-                  <button className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+                  <button className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer">
                     <Settings className="h-4 w-4" /> Settings
                   </button>
                 </SettingsPopover>
@@ -417,13 +409,23 @@ export default function Sidebar({
                 </div>
               </div>
               <div className="mt-2 flex items-center gap-2 rounded-xl bg-zinc-50 p-2 dark:bg-zinc-800/60">
-                <div className="grid h-8 w-8 place-items-center rounded-full bg-zinc-900 text-xs font-bold text-white dark:bg-white dark:text-zinc-900">
-                  JD
+                <div className="grid h-8 w-8 place-items-center rounded-full bg-zinc-900 text-xs font-bold text-white dark:bg-white dark:text-zinc-900 overflow-hidden">
+                  {user && (
+                    <Image
+                      src={user.imageUrl}
+                      width={32}
+                      height={32}
+                      alt="userimg"
+                    />
+                  )}
                 </div>
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-medium">John Doe</div>
+                  <div className="truncate text-sm font-medium">
+                    {user?.fullName}
+                    {/* {user?.username} */}
+                  </div>
                   <div className="truncate text-xs text-zinc-500 dark:text-zinc-400">
-                    Pro workspace
+                    Free workspace
                   </div>
                 </div>
               </div>
@@ -452,11 +454,6 @@ export default function Sidebar({
       <SearchModal
         isOpen={showSearchModal}
         onClose={() => setShowSearchModal(false)}
-        conversations={conversations}
-        selectedId={selectedId}
-        onSelect={onSelect}
-        togglePin={togglePin}
-        createNewChat={createNewChat}
       />
     </>
   );

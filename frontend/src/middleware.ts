@@ -1,4 +1,3 @@
-import { AuthenticateWithRedirectCallback } from "@clerk/nextjs";
 import {
   clerkMiddleware,
   ClerkMiddlewareAuth,
@@ -9,19 +8,13 @@ const isProtectedRoute = createRouteMatcher("/chat"); // Add protected routes he
 export default clerkMiddleware(
   async (auth: ClerkMiddlewareAuth, req) => {
     const { isAuthenticated } = await auth();
-    console.log("isAuthenticated", isAuthenticated);
+    // console.log("isAuthenticated", isAuthenticated);
     if (!isAuthenticated && isProtectedRoute(req)) {
-      // const url = req.nextUrl.clone();
-      // url.pathname = "/";
       return NextResponse.redirect(new URL("/", req.url)); // Redirect to the home page if not authenticated
     }
     if (isAuthenticated && req.nextUrl.pathname === "/") {
       return NextResponse.redirect(new URL("/chat", req.url)); // Redirect to the chat page if authenticated
     }
-    // AuthenticateWithRedirectCallback(req, {
-    //   afterSignInUrl: "/chat", // Redirect to /chat after sign-in
-    //   afterSignUpUrl: "/chat", // Redirect to /chat after sign-up
-    // });
     return NextResponse.next();
   }
   // { debug: true }

@@ -1,3 +1,6 @@
+import DOMPurify from "dompurify";
+import { marked } from "marked";
+
 // Utility to join class names safely
 export const cls = (
   ...classes: (string | undefined | false | null)[]
@@ -49,3 +52,21 @@ export function timeAgo(date: string | Date): string {
 // Utility to create unique IDs with a prefix
 export const makeId = (prefix = ""): string =>
   `${prefix}${Math.random().toString(36).slice(2, 10)}`;
+
+export async function formatMessageFromAI(content: string) {
+  if (!content || typeof content !== "string") return "";
+
+  // Configure markdown renderer
+  marked.setOptions({
+    breaks: true, // Handle \n as <br>
+    gfm: true, // Enable GitHub Flavored Markdown
+  });
+
+  // Convert Markdown to HTML
+  const rawHtml: string = await marked.parse(content);
+
+  // Sanitize the HTML to prevent XSS
+  const safeHtml: string = DOMPurify.sanitize(rawHtml);
+
+  return safeHtml;
+}
