@@ -4,14 +4,13 @@ import React from "react";
 import { Star } from "lucide-react";
 import { ConversationRowProps } from "@/interfaces/interface";
 import { cls, timeAgo } from "../utils/util";
-
+import { useChat } from "./contexts/ChatContext";
 export default function ConversationRow({
   data,
   active,
-  onSelect,
-  onTogglePin,
   showMeta = false,
 }: ConversationRowProps) {
+  const { setSelectedConversation, togglePin } = useChat();
   const count = Array.isArray(data.messages)
     ? data.messages.length
     : data.messageCount;
@@ -19,9 +18,9 @@ export default function ConversationRow({
   return (
     <div className="group relative">
       <button
-        onClick={onSelect}
+        onClick={() => setSelectedConversation(data)}
         className={cls(
-          "-mx-1 flex w-[calc(100%+8px)] items-center gap-2 rounded-lg px-2 py-2 text-left",
+          "-mx-1 flex w-[calc(100%+8px)] items-center gap-2 rounded-lg px-2 py-2 text-left cursor-pointer",
           active
             ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800/60 dark:text-zinc-100"
             : "hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -44,10 +43,10 @@ export default function ConversationRow({
           )}
         </div>
 
-        <button
+        <div
           onClick={(e) => {
             e.stopPropagation();
-            onTogglePin();
+            togglePin(data.id);
           }}
           title={data.pinned ? "Unpin" : "Pin"}
           className="rounded-md p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-700/60"
@@ -58,13 +57,13 @@ export default function ConversationRow({
           ) : (
             <Star className="h-4 w-4" />
           )}
-        </button>
+        </div>
       </button>
 
       {/* Tooltip Preview */}
-      <div className="pointer-events-none absolute left-[calc(100%+6px)] top-1 hidden w-64 rounded-xl border border-zinc-200 bg-white p-3 text-xs text-zinc-700 shadow-lg dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 md:group-hover:block">
+      {/* <div className="pointer-events-none absolute left-[calc(100%+6px)] top-1 hidden w-64 rounded-xl border border-zinc-200 bg-white p-3 text-xs text-zinc-700 shadow-lg dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 md:group-hover:block">
         <div className="line-clamp-6 whitespace-pre-wrap">{data.preview}</div>
-      </div>
+      </div> */}
     </div>
   );
 }

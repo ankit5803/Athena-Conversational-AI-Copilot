@@ -20,15 +20,9 @@ import Header from "./chatheader";
 import ChatPane from "./ChatPane";
 import GhostIconButton from "./GhostIconButton";
 import ThemeToggle from "./ThemeToggle";
-import {
-  INITIAL_CONVERSATIONS,
-  INITIAL_TEMPLATES,
-  INITIAL_FOLDERS,
-} from "../utils/mockData";
-
-import { connectToDatabase } from "../utils/database";
-
-connectToDatabase();
+import { useChat } from "./contexts/ChatContext";
+import { INITIAL_TEMPLATES } from "../utils/mockData";
+import { IConversation } from "@/models/Conversation";
 
 // === Component ===
 export default function AIAssistantUI(): React.JSX.Element {
@@ -69,6 +63,14 @@ export default function AIAssistantUI(): React.JSX.Element {
   }, []);
 
   // --- Sidebar state ---
+  const {
+    conversations,
+    setConversations,
+    folders,
+    setFolders,
+    createConversation,
+    togglePin,
+  } = useChat();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<CollapsedState>(() => {
     try {
@@ -104,26 +106,28 @@ export default function AIAssistantUI(): React.JSX.Element {
   }, [sidebarCollapsed]);
 
   // --- Conversations / folders / templates ---
-  const [conversations, setConversations] = useState<Conversation[]>(
-    INITIAL_CONVERSATIONS
-  );
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+
   const [templates, setTemplates] = useState<Template[]>(INITIAL_TEMPLATES);
-  const [folders, setFolders] = useState<Folder[]>(INITIAL_FOLDERS);
+  // const [folders, setFolders] = useState<Folder[]>(INITIAL_FOLDERS);
   const [query, setQuery] = useState("");
   const searchRef = useRef<HTMLInputElement | null>(null);
   const composerRef = useRef<any>(null);
 
   // --- Thinking state ---
-  const [isThinking, setIsThinking] = useState(false);
-  const [thinkingConvId, setThinkingConvId] = useState<string | null>(null);
+  const {
+    isThinking,
+    setIsThinking,
+    selectedConversation,
+    thinkingConvId,
+    setThinkingConvId,
+  } = useChat();
 
   // --- Keyboard shortcuts ---
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "n") {
         e.preventDefault();
-        createNewChat();
+        createConversation();
       }
       if (!e.metaKey && !e.ctrlKey && e.key === "/") {
         const tag = document.activeElement?.tagName?.toLowerCase();
@@ -139,8 +143,8 @@ export default function AIAssistantUI(): React.JSX.Element {
   }, [sidebarOpen, conversations]);
 
   useEffect(() => {
-    if (!selectedId && conversations.length > 0) {
-      createNewChat();
+    if (!selectedConversation && conversations.length > 0) {
+      createConversation();
     }
   }, []);
 
@@ -154,151 +158,33 @@ export default function AIAssistantUI(): React.JSX.Element {
     );
   }, [conversations, query]);
 
-  const pinned = filtered
-    .filter((c) => c.pinned)
-    .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
-
-  const recent = filtered
-    .filter((c) => !c.pinned)
-    .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))
-    .slice(0, 10);
-
-  const folderCounts = useMemo(() => {
-    const map: Record<string, number> = Object.fromEntries(
-      folders.map((f) => [f.name, 0])
-    );
-    for (const c of conversations)
-      if (map[c.folder] != null) map[c.folder] += 1;
-    return map;
-  }, [conversations, folders]);
+  // const folderCounts = useMemo(() => {
+  //   const map: Record<string, number> = Object.fromEntries(
+  //     folders.map((f) => [f.name, 0])
+  //   );
+  //   for (const c of conversations)
+  //     if (map[c.folder] != null) map[c.folder] += 1;
+  //   return map;
+  // }, [conversations, folders]);
 
   // --- Actions ---
-  function togglePin(id: string): void {
-    setConversations((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, pinned: !c.pinned } : c))
-    );
-  }
 
-  function createNewChat(): void {
-    const id = Math.random().toString(36).slice(2);
-    const item: Conversation = {
-      id,
-      title: "New Chat",
-      updatedAt: new Date().toISOString(),
-      messageCount: 0,
-      preview: "Say hello to start...",
-      pinned: false,
-      folder: "Work Projects",
-      messages: [],
-    };
-    setConversations((prev) => [item, ...prev]);
-    setSelectedId(id);
-    setSidebarOpen(false);
-  }
-
-  function createFolder(): void {
-    const name = prompt("Folder name");
-    if (!name) return;
-    if (folders.some((f) => f.name.toLowerCase() === name.toLowerCase()))
-      return alert("Folder already exists.");
-    setFolders((prev) => [
-      ...prev,
-      { id: Math.random().toString(36).slice(2), name },
-    ]);
-  }
-
-  function sendMessage(convId: string, content: string): void {
-    if (!content.trim()) return;
-    const now = new Date().toISOString();
-    const userMsg: MessageType = {
-      id: Math.random().toString(36).slice(2),
-      role: "user",
-      content,
-      createdAt: now,
-    };
-
-    setConversations((prev) =>
-      prev.map((c) => {
-        if (c.id !== convId) return c;
-        const msgs = [...(c.messages || []), userMsg];
-        return {
-          ...c,
-          messages: msgs,
-          updatedAt: now,
-          messageCount: msgs.length,
-          preview: content.slice(0, 80),
-        };
-      })
-    );
-
-    setIsThinking(true);
-    setThinkingConvId(convId);
-
-    setTimeout(() => {
-      setIsThinking(false);
-      setThinkingConvId(null);
-      setConversations((prev) =>
-        prev.map((c) => {
-          if (c.id !== convId) return c;
-          const asstMsg: MessageType = {
-            id: Math.random().toString(36).slice(2),
-            role: "assistant",
-            content: "Got it — I'll help with that.",
-            createdAt: new Date().toISOString(),
-          };
-          const msgs = [...(c.messages || []), asstMsg];
-          return {
-            ...c,
-            messages: msgs,
-            updatedAt: new Date().toISOString(),
-            messageCount: msgs.length,
-            preview: asstMsg.content.slice(0, 80),
-          };
-        })
-      );
-    }, 2000);
-  }
-
-  function editMessage(
-    convId: string,
-    messageId: string,
-    newContent: string
-  ): void {
-    const now = new Date().toISOString();
-    setConversations((prev) =>
-      prev.map((c) => {
-        if (c.id !== convId) return c;
-        const msgs = (c.messages || []).map((m) =>
-          m.id === messageId ? { ...m, content: newContent, editedAt: now } : m
-        );
-        return {
-          ...c,
-          messages: msgs,
-          preview: msgs[msgs.length - 1]?.content?.slice(0, 80) || c.preview,
-        };
-      })
-    );
-  }
-
-  function resendMessage(convId: string, messageId: string): void {
-    const conv = conversations.find((c) => c.id === convId);
-    const msg = conv?.messages?.find((m) => m.id === messageId);
-    if (!msg) return;
-    sendMessage(convId, msg.content);
-  }
-
-  function pauseThinking(): void {
-    setIsThinking(false);
-    setThinkingConvId(null);
-  }
+  // function createFolder(): void {
+  //   const name = prompt("Folder name");
+  //   if (!name) return;
+  //   if (folders.some((f) => f.name.toLowerCase() === name.toLowerCase()))
+  //     return alert("Folder already exists.");
+  //   setFolders((prev) => [
+  //     ...prev,
+  //     { id: Math.random().toString(36).slice(2), name },
+  //   ]);
+  // }
 
   function handleUseTemplate(template: Template): void {
     if (composerRef.current?.insertTemplate) {
       composerRef.current.insertTemplate(template.content);
     }
   }
-
-  const selected = conversations.find((c) => c.id === selectedId) || null;
 
   // === Render ===
   return (
@@ -335,44 +221,31 @@ export default function AIAssistantUI(): React.JSX.Element {
           setCollapsed={setCollapsed}
           sidebarCollapsed={sidebarCollapsed}
           setSidebarCollapsed={setSidebarCollapsed}
-          conversations={conversations}
-          pinned={pinned}
-          recent={recent}
-          folders={folders}
-          folderCounts={folderCounts}
-          selectedId={selectedId}
-          onSelect={(id: string) => setSelectedId(id)}
-          togglePin={togglePin}
           query={query}
           setQuery={setQuery}
           searchRef={searchRef}
-          createFolder={createFolder}
-          createNewChat={createNewChat}
           templates={templates}
           setTemplates={setTemplates}
           onUseTemplate={handleUseTemplate}
         />
 
         <main className="relative flex min-w-0 flex-1 flex-col">
-          <Header
-            createNewChat={createNewChat}
-            sidebarCollapsed={sidebarCollapsed}
-            setSidebarOpen={setSidebarOpen}
-          />
+          <Header />
           <ChatPane
             ref={composerRef}
-            conversation={selected}
-            onSend={(content: string) =>
-              selected && sendMessage(selected.id, content)
+            // conversation={selected}
+            // onSend={(content: string) =>
+            //   selected && sendMessage(selected.id, content)
+            // }
+            // onEditMessage={(messageId: string, newContent: string) =>
+            //   selected && editMessage(selected.id, messageId, newContent)
+            // }
+            // onResendMessage={(messageId: string) =>
+            //   selected && resendMessage(selected.id, messageId)
+            // }
+            isThinking={
+              isThinking && thinkingConvId === selectedConversation?.id
             }
-            onEditMessage={(messageId: string, newContent: string) =>
-              selected && editMessage(selected.id, messageId, newContent)
-            }
-            onResendMessage={(messageId: string) =>
-              selected && resendMessage(selected.id, messageId)
-            }
-            isThinking={isThinking && thinkingConvId === selected?.id}
-            onPauseThinking={pauseThinking}
           />
         </main>
       </div>

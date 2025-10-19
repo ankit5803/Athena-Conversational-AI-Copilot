@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, SearchIcon, Plus, Clock } from "lucide-react";
 import { useState, useEffect, useMemo, ChangeEvent } from "react";
 import { Conversation, SearchModalProps } from "../interfaces/interface";
+import { useChat } from "./contexts/ChatContext";
 
 function getTimeGroup(
   dateString: string
@@ -19,17 +20,11 @@ function getTimeGroup(
   return "Older";
 }
 
-export default function SearchModal({
-  isOpen,
-  onClose,
-  conversations,
-  selectedId,
-  onSelect,
-  togglePin,
-  createNewChat,
-}: SearchModalProps) {
+export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [query, setQuery] = useState<string>("");
 
+  const { conversations, createConversation, setSelectedConversation } =
+    useChat();
   const filteredConversations = useMemo(() => {
     if (!query.trim()) return conversations;
     const q = query.toLowerCase();
@@ -69,12 +64,12 @@ export default function SearchModal({
   };
 
   const handleNewChat = () => {
-    createNewChat();
+    createConversation();
     handleClose();
   };
 
-  const handleSelectConversation = (id: string) => {
-    onSelect(id);
+  const handleSelectConversation = (conversation: Conversation) => {
+    setSelectedConversation(conversation);
     handleClose();
   };
 
@@ -158,7 +153,7 @@ export default function SearchModal({
                         {convs.map((conv) => (
                           <button
                             key={conv.id}
-                            onClick={() => handleSelectConversation(conv.id)}
+                            onClick={() => handleSelectConversation(conv)}
                             className="flex w-full items-center gap-3 rounded-lg p-3 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800"
                           >
                             <Clock className="h-4 w-4 text-zinc-400 shrink-0" />

@@ -1,10 +1,10 @@
-// import Chatinterface from "@/components/chatinterface";
+"use client";
 import AIAssistantUI from "@/components/AIAssistantUI";
+// import axios from "axios";
+// import { useEffect } from "react";
+import { useChat } from "@/components/contexts/ChatContext";
 export default function ChatPage() {
-  return (
-    // <div className="w-screen h-screen">
-    //   <Chatinterface />
-    // </div>
-    <AIAssistantUI />
-  );
+  const { fetchUserDatandsaveUser } = useChat();
+  fetchUserDatandsaveUser();
+  return <AIAssistantUI />;
 }

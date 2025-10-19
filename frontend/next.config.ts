@@ -6,7 +6,11 @@ import type { NextConfig } from "next";
 // };
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["mongoose"],
+  images: {
+    domains: ["img.clerk.com"], // 👈 Add this line
+  },
+  // <-- add this
+  serverExternalPackages: ["mongoose"], // <-- and this
 };
 
 export default nextConfig;

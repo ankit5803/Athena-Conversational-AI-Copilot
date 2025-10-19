@@ -26,10 +26,10 @@ COPY . .
 # -----------------------------
 # 6. Expose FastAPI port
 # -----------------------------
-EXPOSE 10000
+EXPOSE 7860
 
 # -----------------------------
 # 7. Start FastAPI app
 # -----------------------------
 # Uses `uvicorn` to run your app.py
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "10000"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
