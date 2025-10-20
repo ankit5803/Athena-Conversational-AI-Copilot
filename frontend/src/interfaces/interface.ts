@@ -16,13 +16,13 @@ interface Conversation {
   messageCount: number;
   preview: string;
   pinned: boolean;
-  folder: string;
   messages: MessageType[];
 }
 
 interface Folder {
   id: string;
   name: string;
+  conversations: Conversation[];
 }
 
 interface Template {
@@ -68,6 +68,7 @@ interface SidebarSectionProps {
   title: string;
   children?: ReactNode;
   collapsed: boolean;
+  onToggle: () => void;
 }
 
 interface ConversationRowProps {
@@ -78,9 +79,7 @@ interface ConversationRowProps {
 
 interface FolderRowProps {
   name: string;
-  count: number;
-  conversations?: Conversation[];
-  togglePin: (id: string) => void;
+  conversations: Conversation[];
   onDeleteFolder?: (folderName: string) => void;
   onRenameFolder?: (oldName: string, newName: string) => void;
 }
@@ -101,7 +100,6 @@ interface ThemeToggleProps {
 interface CreateFolderModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreateFolder: (folderName: string) => void;
 }
 
 interface CreateTemplateModalProps {

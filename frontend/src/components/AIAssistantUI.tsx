@@ -1,19 +1,12 @@
 "use client";
 
 import type {
-  Conversation,
   CollapsedState,
   Folder,
   MessageType,
   Template,
 } from "../interfaces/interface";
-import React, {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  MutableRefObject,
-} from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Calendar, LayoutGrid, MoreHorizontal } from "lucide-react";
 import Sidebar from "./Sidebar";
 import Header from "./chatheader";
@@ -21,8 +14,7 @@ import ChatPane from "./ChatPane";
 import GhostIconButton from "./GhostIconButton";
 import ThemeToggle from "./ThemeToggle";
 import { useChat } from "./contexts/ChatContext";
-import { INITIAL_TEMPLATES } from "../utils/mockData";
-import { IConversation } from "@/models/Conversation";
+// import { INITIAL_TEMPLATES } from "../utils/mockData";
 
 // === Component ===
 export default function AIAssistantUI(): React.JSX.Element {
@@ -73,14 +65,15 @@ export default function AIAssistantUI(): React.JSX.Element {
   } = useChat();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<CollapsedState>(() => {
-    try {
-      const raw = localStorage.getItem("sidebar-collapsed");
-      return raw
-        ? JSON.parse(raw)
-        : { pinned: true, recent: false, folders: true, templates: true };
-    } catch {
-      return { pinned: true, recent: false, folders: true, templates: true };
-    }
+    // try {
+    //   const raw = localStorage.getItem("sidebar-collapsed");
+    //   return raw
+    //     ? JSON.parse(raw)
+    //     : { pinned: true, recent: false, folders: false, templates: false };
+    // } catch {
+    //   return { pinned: true, recent: false, folders: true, templates: true };
+    // }
+    return { pinned: false, recent: false, folders: false, templates: false };
   });
   useEffect(() => {
     try {
@@ -107,7 +100,7 @@ export default function AIAssistantUI(): React.JSX.Element {
 
   // --- Conversations / folders / templates ---
 
-  const [templates, setTemplates] = useState<Template[]>(INITIAL_TEMPLATES);
+  const [templates, setTemplates] = useState<Template[]>([]); //INITIAL_TEMPLATES);
   // const [folders, setFolders] = useState<Folder[]>(INITIAL_FOLDERS);
   const [query, setQuery] = useState("");
   const searchRef = useRef<HTMLInputElement | null>(null);

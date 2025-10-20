@@ -78,8 +78,9 @@ const Composer = forwardRef<ComposerHandle>(function Composer(
     if (!value.trim() || busy) return;
     setBusy(true);
     try {
-      await sendMessage(value);
+      const query = value;
       setValue("");
+      await sendMessage(query);
       inputRef.current?.focus();
     } finally {
       setBusy(false);

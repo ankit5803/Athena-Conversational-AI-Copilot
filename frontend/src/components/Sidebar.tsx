@@ -13,7 +13,7 @@ import {
   Settings,
   Asterisk,
 } from "lucide-react";
-import type { SidebarProps, Template } from "../interfaces/interface";
+import type { Folder, SidebarProps, Template } from "../interfaces/interface";
 import SidebarSection from "./SidebarSection";
 import ConversationRow from "./ConversationRow";
 import FolderRow from "./FolderRow";
@@ -52,12 +52,11 @@ export default function Sidebar({
   const {
     conversations,
     createConversation,
-    pinned,
-    togglePin,
-    folders,
-    folderCounts,
-    recent,
     selectedConversation,
+    pinned,
+    recent,
+    folders,
+    createFolder,
   } = useChat();
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
   const [showCreateTemplateModal, setShowCreateTemplateModal] = useState(false);
@@ -65,29 +64,31 @@ export default function Sidebar({
   const [showSearchModal, setShowSearchModal] = useState(false);
 
   // === Folder Logic ===
-  const getConversationsByFolder = (folderName: string) =>
-    conversations.filter((conv) => conv.folder === folderName);
-
-  const handleCreateFolder = (folderName: string) => {
-    // createFolder(folderName);
-    console.log("Create folder:", folderName);
+  const getConversationsByFolder = (folder: Folder) => {
+    const convs = folders.find((f) => f.id === folder.id)?.conversations;
+    return convs || [];
   };
+  // const handleCreateFolder = (folder: Folder) => {
+  //   createFolder(folder);
+  // };
 
   const handleDeleteFolder = (folderName: string) => {
-    const updatedConversations = conversations.map((conv) =>
-      conv.folder === folderName ? { ...conv, folder: null } : conv
-    );
-    console.log("Delete folder:", folderName, updatedConversations);
+    // const updatedConversations = conversations.map((conv) =>
+    //   conv.folder === folderName ? { ...conv, folder: null } : conv
+    // );
+    // console.log("Delete folder:", folderName, updatedConversations);
+    console.log("Delete folder:", folderName);
   };
 
   const handleRenameFolder = (oldName: string, newName: string) => {
-    const updatedConversations = conversations.map((conv) =>
-      conv.folder === oldName ? { ...conv, folder: newName } : conv
-    );
-    console.log("Rename folder:", oldName, "→", newName, updatedConversations);
+    // const updatedConversations = conversations.map((conv) =>
+    //   conv.folder === oldName ? { ...conv, folder: newName } : conv
+    // );
+    // console.log("Rename folder:", oldName, "→", newName, updatedConversations);
+    console.log("Rename folder:", oldName, "→", newName);
   };
 
-  // === Template Logic ===
+  // // === Template Logic ===
   const handleCreateTemplate = (templateData: Omit<Template, "id">) => {
     if (editingTemplate) {
       const updated = templates.map((t) =>
@@ -108,28 +109,28 @@ export default function Sidebar({
     setShowCreateTemplateModal(false);
   };
 
-  const handleEditTemplate = (template: Template) => {
-    setEditingTemplate(template);
-    setShowCreateTemplateModal(true);
-  };
+  // const handleEditTemplate = (template: Template) => {
+  //   setEditingTemplate(template);
+  //   setShowCreateTemplateModal(true);
+  // };
 
-  const handleRenameTemplate = (templateId: string, newName: string) => {
-    const updated = templates.map((t) =>
-      t.id === templateId
-        ? { ...t, name: newName, updatedAt: new Date().toISOString() }
-        : t
-    );
-    setTemplates(updated);
-  };
+  // const handleRenameTemplate = (templateId: string, newName: string) => {
+  //   const updated = templates.map((t) =>
+  //     t.id === templateId
+  //       ? { ...t, name: newName, updatedAt: new Date().toISOString() }
+  //       : t
+  //   );
+  //   setTemplates(updated);
+  // };
 
-  const handleDeleteTemplate = (templateId: string) => {
-    const updated = templates.filter((t) => t.id !== templateId);
-    setTemplates(updated);
-  };
+  // const handleDeleteTemplate = (templateId: string) => {
+  //   const updated = templates.filter((t) => t.id !== templateId);
+  //   setTemplates(updated);
+  // };
 
-  const handleUseTemplate = (template: Template) => {
-    onUseTemplate(template);
-  };
+  // const handleUseTemplate = (template: Template) => {
+  //   onUseTemplate(template);
+  // };
 
   // === Collapsed Sidebar ===
   if (sidebarCollapsed) {
@@ -223,12 +224,25 @@ export default function Sidebar({
           >
             {/* Header */}
             <div className="flex items-center gap-2 border-b border-zinc-200/60 px-3 py-3 dark:border-zinc-800">
-              <div className="flex items-center gap-2">
-                <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-sm dark:from-zinc-200 dark:to-zinc-300 dark:text-zinc-900">
-                  <Asterisk className="h-4 w-4" />
+              <div className="flex items-center gap-0">
+                <div
+                  className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br text-white dark:text-zinc-900"
+                  // from-blue-500
+                  // to-indigo-500
+                  // dark:from-zinc-200
+                  // dark:to-zinc-300
+                  // shadow-sm
+                >
+                  {/* <Asterisk className="h-4 w-4" /> */}
+                  <Image
+                    src="/athenalogo.png"
+                    alt="Athena Logo"
+                    width={28}
+                    height={28}
+                  />
                 </div>
-                <div className="text-sm font-semibold tracking-tight">
-                  AI Assistant
+                <div className="text-sm font-semibold tracking-wider">
+                  Athena
                 </div>
               </div>
               <div className="ml-auto flex items-center gap-1">
@@ -274,10 +288,7 @@ export default function Sidebar({
             {/* New Chat Button */}
             <div className="px-3 pt-3">
               <button
-                onClick={() => [
-                  createConversation(),
-                  console.log("Recent conversations:", recent),
-                ]}
+                onClick={() => [createConversation()]}
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-white dark:text-zinc-900 cursor-pointer"
                 title="New Chat (⌘N)"
               >
@@ -286,12 +297,18 @@ export default function Sidebar({
             </div>
 
             {/* Scrollable sections */}
-            <nav className="mt-4 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2 pb-4">
+            <nav className="mt-4 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] px-2 pb-4">
               {/* Pinned */}
               <SidebarSection
                 icon={<Star className="h-4 w-4" />}
                 title="PINNED CHATS"
                 collapsed={collapsed.pinned}
+                onToggle={() =>
+                  setCollapsed((prev) => ({
+                    ...prev,
+                    pinned: !prev.pinned,
+                  }))
+                }
               >
                 {pinned.length === 0 ? (
                   <div className="select-none rounded-lg border border-dashed px-3 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
@@ -313,6 +330,12 @@ export default function Sidebar({
                 icon={<Clock className="h-4 w-4" />}
                 title="RECENT"
                 collapsed={collapsed.recent}
+                onToggle={() =>
+                  setCollapsed((prev) => ({
+                    ...prev,
+                    recent: !prev.recent,
+                  }))
+                }
               >
                 {recent.length === 0 ? (
                   <div className="select-none rounded-lg border border-dashed px-3 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
@@ -336,11 +359,17 @@ export default function Sidebar({
                 icon={<FolderIcon className="h-4 w-4" />}
                 title="FOLDERS"
                 collapsed={collapsed.folders}
+                onToggle={() =>
+                  setCollapsed((prev) => ({
+                    ...prev,
+                    folders: !prev.folders,
+                  }))
+                }
               >
                 <div className="-mx-1">
                   <button
                     onClick={() => setShowCreateFolderModal(true)}
-                    className="mb-2 inline-flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                    className="mb-2 inline-flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 cursor-pointer"
                   >
                     <Plus className="h-4 w-4" /> Create folder
                   </button>
@@ -349,9 +378,7 @@ export default function Sidebar({
                     <FolderRow
                       key={f.id}
                       name={f.name}
-                      count={folderCounts[f.name] || 0}
-                      conversations={getConversationsByFolder(f.name)}
-                      togglePin={togglePin}
+                      conversations={getConversationsByFolder(f)}
                       onDeleteFolder={handleDeleteFolder}
                       onRenameFolder={handleRenameFolder}
                     />
@@ -438,7 +465,6 @@ export default function Sidebar({
       <CreateFolderModal
         isOpen={showCreateFolderModal}
         onClose={() => setShowCreateFolderModal(false)}
-        onCreateFolder={handleCreateFolder}
       />
 
       <CreateTemplateModal
