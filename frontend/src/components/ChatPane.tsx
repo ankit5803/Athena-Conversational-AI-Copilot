@@ -115,7 +115,7 @@ const ChatPane = forwardRef<ChatPaneHandle, ChatPaneProps>(function ChatPane(
     <div className="flex h-full min-h-0 flex-1 flex-col">
       <div
         ref={scrollRef}
-        className="flex-1 space-y-5 overflow-y-auto px-4 py-6 sm:px-8"
+        className="flex-1 space-y-5 overflow-y-auto px-4 py-6 sm:px-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none]"
       >
         <div className="mb-2 text-3xl font-serif tracking-tight sm:text-4xl md:text-5xl">
           <span className="block leading-[1.05] font-sans text-2xl">
@@ -215,11 +215,7 @@ const ChatPane = forwardRef<ChatPaneHandle, ChatPaneProps>(function ChatPane(
         )}
       </div>
 
-      <Composer
-        ref={composerRef}
-        // onSend={}
-        // busy={busy}
-      />
+      <Composer ref={composerRef} />
     </div>
   );
 });

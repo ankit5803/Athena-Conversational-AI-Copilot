@@ -7,7 +7,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import type { Conversation } from "@/interfaces/interface";
+import type { Folder, Conversation } from "@/interfaces/interface";
 import axios from "axios";
 import { useUser } from "@clerk/nextjs";
 import DOMPurify from "dompurify";
@@ -25,11 +25,16 @@ interface ChatContextType {
   setConversations: React.Dispatch<React.SetStateAction<Conversation[]>>;
   pinned: Conversation[];
   recent: Conversation[];
-  folders: { id: string; name: string }[];
-  setFolders: React.Dispatch<
-    React.SetStateAction<{ id: string; name: string }[]>
-  >;
-  folderCounts: Record<string, number>;
+  folders: Folder[];
+  setFolders: React.Dispatch<React.SetStateAction<Folder[]>>;
+  createFolder: ({
+    name,
+    conversations,
+  }: {
+    name: string;
+    conversations: Conversation[];
+  }) => Promise<void>;
+  // folderCounts: Record<string, number>;
 
   //   deleteConversation: (id: string) => Promise<void>;
   sendMessage: (content: string) => Promise<void>;
@@ -51,8 +56,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     useState<Conversation | null>(null);
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [thinkingConvId, setThinkingConvId] = useState<string | null>(null);
-  const [folders, setFolders] = useState<{ id: string; name: string }[]>([]);
-  const [folderCounts, setFolderCounts] = useState<Record<string, number>>({});
+  const [folders, setFolders] = useState<Folder[]>([]);
+  // const [folderCounts, setFolderCounts] = useState<Record<string, number>>({});
 
   // Derived arrays
   const pinned = conversations.filter((c) => c.pinned);
@@ -65,7 +70,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   // === Fetch and Save user to backend on load ===
   const fetchUserDatandsaveUser = async () => {
     try {
-      await axios.get("/api/user");
+      await axios.get("http://localhost:3000/api/user");
     } catch (error) {
       console.error(error);
     }
@@ -75,7 +80,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   const refreshConversations = async (userId: string) => {
     // if (!userId) return;
-    axios
+    await axios
       .get(`/api/chat/${userId}`)
       .then((response) => {
         const chats = response.data.map((res: any) => ({
@@ -98,11 +103,26 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       .catch((error) => {
         console.error("Error fetching conversations:", error);
       });
+    await axios
+      .get(`/api/folder/${userId}`)
+      .then((response) => {
+        const folders = response.data.map((res: any) => ({
+          ...res,
+          id: res._id,
+        }));
+
+        setFolders(folders);
+
+        console.log(folders);
+      })
+      .catch((error) => {
+        console.error("Error fetching conversations:", error);
+      });
   };
 
   // === Create new conversation ===
   const createConversation = async (title = "New Pussy 10") => {
-    axios
+    await axios
       .post("/api/chat", { title, userId: user?.id })
       .then((response) => {
         const conversation = { ...response.data, id: response.data._id };
@@ -381,14 +401,38 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   //     }
   //   };
 
+  const createFolder = async ({
+    name,
+    conversations,
+  }: {
+    name: string;
+    conversations: Conversation[];
+  }) => {
+    await axios
+      .post("/api/folder", {
+        name,
+        conversations,
+        userId: user?.id,
+      })
+      .then((response) => {
+        const folder = { ...response.data, id: response.data._id };
+        setFolders((prev) => [...prev, folder]);
+
+        console.log(folder);
+      })
+      .catch((error) => {
+        console.error("Error creating conversations:", error);
+      });
+  };
+
   // === Folder counts ===
-  useEffect(() => {
-    const counts: Record<string, number> = {};
-    conversations.forEach((c) => {
-      if (c.folder) counts[c.folder] = (counts[c.folder] || 0) + 1;
-    });
-    setFolderCounts(counts);
-  }, [conversations]);
+  // useEffect(() => {
+  //   const counts: Record<string, number> = {};
+  //   conversations.forEach((c) => {
+  //     if (c.folder) counts[c.folder] = (counts[c.folder] || 0) + 1;
+  //   });
+  //   setFolderCounts(counts);
+  // }, [conversations]);
 
   return (
     <ChatContext.Provider
@@ -403,7 +447,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         recent,
         folders,
         setFolders,
-        folderCounts,
+        createFolder,
+        // folderCounts,
         createConversation,
         // deleteConversation,
         sendMessage,

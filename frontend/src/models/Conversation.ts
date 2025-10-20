@@ -11,7 +11,7 @@ export interface IConversation extends Document {
   messages: Types.DocumentArray<IMessage>;
 }
 
-const ConversationSchema = new Schema<IConversation>(
+export const ConversationSchema = new Schema<IConversation>(
   {
     userId: { type: String, required: true },
     title: { type: String, required: true },

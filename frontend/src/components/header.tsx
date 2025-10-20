@@ -7,11 +7,16 @@ function Header() {
     <header className="fixed top-0 w-full px-4 lg:px-6 h-14 flex items-center bg-transparent text-primary-foreground">
       <div>
         <Link
-          href="#"
-          className="flex items-center gap-4 text-lg"
+          href="/"
+          className="flex items-center gap-1 text-lg"
           prefetch={false}
         >
-          <Image width={24} height={24} src={"/globe.svg"} alt="Logo"></Image>
+          <Image
+            width={28}
+            height={28}
+            src="/athenalogo.png"
+            alt="Athena logo"
+          />
           Athena AI
         </Link>
       </div>

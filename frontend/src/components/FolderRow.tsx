@@ -10,22 +10,20 @@ import {
 import type { FolderRowProps } from "../interfaces/interface";
 import { motion, AnimatePresence } from "framer-motion";
 import ConversationRow from "./ConversationRow";
+import { useChat } from "./contexts/ChatContext";
 
 // --- Types ---
 
 export default function FolderRow({
   name,
-  count,
-  conversations = [],
-  selectedId,
-  onSelect,
-  togglePin,
+  conversations,
   onDeleteFolder,
   onRenameFolder,
 }: FolderRowProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const { selectedConversation } = useChat();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -41,10 +39,6 @@ export default function FolderRow({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showMenu]);
-
-  const handleToggle = () => {
-    setIsExpanded((prev) => !prev);
-  };
 
   const handleRename = () => {
     const newName = prompt(`Rename folder "${name}" to:`, name);
@@ -69,8 +63,10 @@ export default function FolderRow({
     <div className="group">
       <div className="flex items-center justify-between rounded-lg px-2 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800">
         <button
-          onClick={handleToggle}
-          className="flex flex-1 items-center gap-2 text-left"
+          onClick={() => {
+            setIsExpanded((prev) => !prev);
+          }}
+          className="flex flex-1 items-center gap-2 text-left cursor-pointer"
         >
           {isExpanded ? (
             <ChevronDown className="h-4 w-4 text-zinc-500" />
@@ -83,7 +79,7 @@ export default function FolderRow({
 
         <div className="flex items-center gap-1">
           <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 text-[11px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-            {count}
+            {conversations.length}
           </span>
 
           <div className="relative" ref={menuRef}>
@@ -92,7 +88,7 @@ export default function FolderRow({
                 e.stopPropagation();
                 setShowMenu((prev) => !prev);
               }}
-              className="rounded p-1 opacity-0 transition-opacity hover:bg-zinc-200 dark:hover:bg-zinc-700 group-hover:opacity-100"
+              className="rounded p-1 opacity-0 transition-opacity hover:bg-zinc-200 dark:hover:bg-zinc-700 group-hover:opacity-100 cursor-pointer"
             >
               <MoreHorizontal className="h-3 w-3" />
             </button>
@@ -107,13 +103,13 @@ export default function FolderRow({
                 >
                   <button
                     onClick={handleRename}
-                    className="w-full px-3 py-1.5 text-left text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    className="w-full px-3 py-1.5 text-left text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
                   >
                     Rename
                   </button>
                   <button
                     onClick={handleDelete}
-                    className="w-full px-3 py-1.5 text-left text-xs text-red-600 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    className="w-full px-3 py-1.5 text-left text-xs text-red-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
                   >
                     Delete
                   </button>
@@ -137,17 +133,10 @@ export default function FolderRow({
                 <ConversationRow
                   key={conversation.id}
                   data={conversation}
-                  active={conversation.id === selectedId}
-                  onSelect={() => onSelect(conversation.id)}
-                  onTogglePin={() => togglePin(conversation.id)}
+                  active={conversation.id == selectedConversation?.id}
                   showMeta
                 />
               ))}
-              {conversations.length === 0 && (
-                <div className="px-2 py-2 text-xs text-zinc-500 dark:text-zinc-400">
-                  No conversations in this folder
-                </div>
-              )}
             </div>
           </motion.div>
         )}

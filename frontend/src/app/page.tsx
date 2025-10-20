@@ -7,9 +7,6 @@ import {
   UserButton,
   SignedIn,
 } from "@clerk/nextjs";
-import Image from "next/image";
-import LiquidEther from "../components/liquidether";
-import Hyperspeed from "../components/hyperspeed";
 import DarkVeil from "../components/darkveil";
 import { motion } from "framer-motion";
 import Header from "../components/header";

@@ -4,7 +4,7 @@ import {
   createRouteMatcher,
 } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-const isProtectedRoute = createRouteMatcher("/chat"); // Add protected routes here, such as /dashboardexport default
+const isProtectedRoute = createRouteMatcher("/chat"); // Add protected routes here, such as /
 export default clerkMiddleware(
   async (auth: ClerkMiddlewareAuth, req) => {
     const { isAuthenticated } = await auth();
