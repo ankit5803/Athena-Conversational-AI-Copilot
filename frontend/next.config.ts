@@ -6,11 +6,17 @@ import type { NextConfig } from "next";
 // };
 
 const nextConfig: NextConfig = {
-  experimental: {
-    optimizeCss: false,
-  },
+  // experimental: {
+  //   optimizeCss: false,
+  //   useLightningcss: false,
+  // },
   images: {
-    domains: ["img.clerk.com"], // 👈 Add this line
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+    ], // 👈 Add this line
   },
   // <-- add this
   serverExternalPackages: ["mongoose"], // <-- and this
