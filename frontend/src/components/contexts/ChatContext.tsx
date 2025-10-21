@@ -70,7 +70,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   // === Fetch and Save user to backend on load ===
   const fetchUserDatandsaveUser = async () => {
     try {
-      await axios.get("http://localhost:3000/api/user");
+      await axios.get("/api/user");
     } catch (error) {
       console.error(error);
     }
