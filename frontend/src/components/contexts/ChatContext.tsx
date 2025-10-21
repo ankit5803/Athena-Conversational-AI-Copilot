@@ -121,9 +121,12 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   };
 
   // === Create new conversation ===
-  const createConversation = async (title = "New Pussy 10") => {
+  const createConversation = async () => {
     await axios
-      .post("/api/chat", { title, userId: user?.id })
+      .post("/api/chat", {
+        title: `New chat ${conversations.length + 1}`,
+        userId: user?.id,
+      })
       .then((response) => {
         const conversation = { ...response.data, id: response.data._id };
         setConversations((prev) => [...prev, conversation]);
