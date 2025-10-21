@@ -21,7 +21,7 @@ export default function ComposerActionsPopover({
   children,
 }: ComposerActionsPopoverProps) {
   const [open, setOpen] = useState<boolean>(false);
-  const [showMore, setShowMore] = useState<boolean>(false);
+  // const [showMore, setShowMore] = useState<boolean>(false);
 
   const mainActions: ActionItem[] = [
     {
@@ -90,12 +90,12 @@ export default function ComposerActionsPopover({
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
-    if (!newOpen) setShowMore(false);
+    // if (!newOpen) setShowMore(false);
   };
   const handleAction = (action: () => void) => {
     action();
     setOpen(false);
-    setShowMore(false);
+    // setShowMore(false);
   };
 
   // const handleMoreClick = () => setShowMore(true);
@@ -160,6 +160,5 @@ export default function ComposerActionsPopover({
         )} */}
       </Popover.Content>
     </Popover.Root>
-    // <div>Hello</div>
   );
 }

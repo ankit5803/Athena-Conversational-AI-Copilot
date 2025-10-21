@@ -56,9 +56,6 @@ interface SidebarProps {
   query: string;
   setQuery: Dispatch<SetStateAction<string>>;
   searchRef: RefObject<HTMLInputElement | null>;
-  templates: Template[];
-  setTemplates: Dispatch<SetStateAction<Template[]>>;
-  onUseTemplate: (template: Template) => void;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: Dispatch<SetStateAction<boolean>>;
 }
@@ -118,8 +115,6 @@ interface SettingsPopoverProps {
 }
 
 interface ChatPaneProps {
-  onEditMessage?: (id: string, content: string) => void;
-  onResendMessage?: (id: string) => void;
   isThinking?: boolean;
   onPauseThinking?: () => void;
 }

@@ -1,15 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
-import {
-  User,
-  Globe,
-  HelpCircle,
-  // Crown,
-  // BookOpen,
-  LogOut,
-  ChevronRight,
-} from "lucide-react";
+import { User, Globe, HelpCircle, LogOut, ChevronRight } from "lucide-react";
 import { SettingsPopoverProps } from "../interfaces/interface";
 import { Popover } from "radix-ui";
 import { SignOutButton } from "@clerk/nextjs";

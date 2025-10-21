@@ -9,18 +9,14 @@ import {
   Star,
   Clock,
   FolderIcon,
-  FileText,
   Settings,
-  Asterisk,
 } from "lucide-react";
 import type { Folder, SidebarProps, Template } from "../interfaces/interface";
 import SidebarSection from "./SidebarSection";
 import ConversationRow from "./ConversationRow";
 import FolderRow from "./FolderRow";
-import TemplateRow from "./TemplateRow";
 import ThemeToggle from "./ThemeToggle";
 import CreateFolderModal from "./CreateFolderModal";
-import CreateTemplateModal from "./CreateTemplateModal";
 import SearchModal from "./SearchModal";
 import SettingsPopover from "./SettingsPopover";
 import { cls } from "../utils/util";
@@ -28,39 +24,23 @@ import { useState } from "react";
 import Image from "next/image";
 import { useUser } from "@clerk/clerk-react";
 import { useChat } from "./contexts/ChatContext";
-// === Props ===
-
-// === Component ===
 export default function Sidebar({
   open,
   onClose,
   theme,
-
   setTheme,
   collapsed,
   setCollapsed,
   query,
   setQuery,
   searchRef,
-  templates = [],
-  setTemplates,
-  onUseTemplate,
   sidebarCollapsed = false,
   setSidebarCollapsed,
 }: SidebarProps) {
   const { user } = useUser();
-  const {
-    conversations,
-    createConversation,
-    selectedConversation,
-    pinned,
-    recent,
-    folders,
-    createFolder,
-  } = useChat();
+  const { createConversation, selectedConversation, pinned, recent, folders } =
+    useChat();
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
-  const [showCreateTemplateModal, setShowCreateTemplateModal] = useState(false);
-  const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
   const [showSearchModal, setShowSearchModal] = useState(false);
 
   // === Folder Logic ===
@@ -68,9 +48,6 @@ export default function Sidebar({
     const convs = folders.find((f) => f.id === folder.id)?.conversations;
     return convs || [];
   };
-  // const handleCreateFolder = (folder: Folder) => {
-  //   createFolder(folder);
-  // };
 
   const handleDeleteFolder = (folderName: string) => {
     // const updatedConversations = conversations.map((conv) =>
@@ -87,50 +64,6 @@ export default function Sidebar({
     // console.log("Rename folder:", oldName, "→", newName, updatedConversations);
     console.log("Rename folder:", oldName, "→", newName);
   };
-
-  // // === Template Logic ===
-  const handleCreateTemplate = (templateData: Omit<Template, "id">) => {
-    if (editingTemplate) {
-      const updated = templates.map((t) =>
-        t.id === editingTemplate.id
-          ? { ...templateData, id: editingTemplate.id }
-          : t
-      );
-      setTemplates(updated);
-      setEditingTemplate(null);
-    } else {
-      const newTemplate: Template = {
-        ...templateData,
-        id: Date.now().toString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setTemplates([...templates, newTemplate]);
-    }
-    setShowCreateTemplateModal(false);
-  };
-
-  // const handleEditTemplate = (template: Template) => {
-  //   setEditingTemplate(template);
-  //   setShowCreateTemplateModal(true);
-  // };
-
-  // const handleRenameTemplate = (templateId: string, newName: string) => {
-  //   const updated = templates.map((t) =>
-  //     t.id === templateId
-  //       ? { ...t, name: newName, updatedAt: new Date().toISOString() }
-  //       : t
-  //   );
-  //   setTemplates(updated);
-  // };
-
-  // const handleDeleteTemplate = (templateId: string) => {
-  //   const updated = templates.filter((t) => t.id !== templateId);
-  //   setTemplates(updated);
-  // };
-
-  // const handleUseTemplate = (template: Template) => {
-  //   onUseTemplate(template);
-  // };
 
   // === Collapsed Sidebar ===
   if (sidebarCollapsed) {
@@ -167,13 +100,6 @@ export default function Sidebar({
             title="Search"
           >
             <SearchIcon className="h-5 w-5" />
-          </button>
-
-          <button
-            className="rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
-            title="Folders"
-          >
-            <FolderIcon className="h-5 w-5" />
           </button>
 
           <div className="mt-auto mb-4">
@@ -233,7 +159,6 @@ export default function Sidebar({
                   // dark:to-zinc-300
                   // shadow-sm
                 >
-                  {/* <Asterisk className="h-4 w-4" /> */}
                   <Image
                     src="/athenalogo.png"
                     alt="Athena Logo"
@@ -385,42 +310,6 @@ export default function Sidebar({
                   ))}
                 </div>
               </SidebarSection>
-
-              {/* Templates */}
-              {/* <SidebarSection
-                icon={<FileText className="h-4 w-4" />}
-                title="TEMPLATES"
-                collapsed={collapsed.templates}
-                
-              >
-                <div className="-mx-1">
-                  <button
-                    onClick={() => setShowCreateTemplateModal(true)}
-                    className="mb-2 inline-flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                  >
-                    <Plus className="h-4 w-4" /> Create template
-                  </button>
-
-                  {(Array.isArray(templates) ? templates : []).map(
-                    (template) => (
-                      <TemplateRow
-                        key={template.id}
-                        template={template}
-                        onUseTemplate={handleUseTemplate}
-                        onEditTemplate={handleEditTemplate}
-                        onRenameTemplate={handleRenameTemplate}
-                        onDeleteTemplate={handleDeleteTemplate}
-                      />
-                    )
-                  )}
-
-                  {(!templates || templates.length === 0) && (
-                    <div className="select-none rounded-lg border border-dashed px-3 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-                      No templates yet. Create your first prompt template.
-                    </div>
-                  )}
-                </div>
-              </SidebarSection> */}
             </nav>
 
             {/* Footer */}
@@ -465,16 +354,6 @@ export default function Sidebar({
       <CreateFolderModal
         isOpen={showCreateFolderModal}
         onClose={() => setShowCreateFolderModal(false)}
-      />
-
-      <CreateTemplateModal
-        isOpen={showCreateTemplateModal}
-        onClose={() => {
-          setShowCreateTemplateModal(false);
-          setEditingTemplate(null);
-        }}
-        onCreateTemplate={handleCreateTemplate}
-        editingTemplate={editingTemplate}
       />
 
       <SearchModal

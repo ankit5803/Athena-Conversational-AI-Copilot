@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, RefObject } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   FolderIcon,
   ChevronRight,
