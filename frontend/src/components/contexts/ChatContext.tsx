@@ -102,6 +102,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       .then((response) => {
         const folders = response.data.map((res: any) => ({
           ...res,
+          conversations: res.conversations.map((c: any) => ({
+            ...c,
+            id: c._id,
+          })),
           id: res._id,
         }));
 
