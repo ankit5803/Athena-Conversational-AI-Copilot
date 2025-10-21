@@ -1,11 +1,6 @@
 "use client";
 
-import type {
-  CollapsedState,
-  Folder,
-  MessageType,
-  Template,
-} from "../interfaces/interface";
+import type { CollapsedState } from "../interfaces/interface";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Calendar, LayoutGrid, MoreHorizontal } from "lucide-react";
 import Sidebar from "./Sidebar";
@@ -55,14 +50,7 @@ export default function AIAssistantUI(): React.JSX.Element {
   }, []);
 
   // --- Sidebar state ---
-  const {
-    conversations,
-    setConversations,
-    folders,
-    setFolders,
-    createConversation,
-    togglePin,
-  } = useChat();
+  const { conversations, createConversation } = useChat();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<CollapsedState>(() => {
     // try {
@@ -100,20 +88,13 @@ export default function AIAssistantUI(): React.JSX.Element {
 
   // --- Conversations / folders / templates ---
 
-  const [templates, setTemplates] = useState<Template[]>([]); //INITIAL_TEMPLATES);
-  // const [folders, setFolders] = useState<Folder[]>(INITIAL_FOLDERS);
+  // const [templates, setTemplates] = useState<Template[]>([]); //INITIAL_TEMPLATES
   const [query, setQuery] = useState("");
   const searchRef = useRef<HTMLInputElement | null>(null);
   const composerRef = useRef<any>(null);
 
   // --- Thinking state ---
-  const {
-    isThinking,
-    setIsThinking,
-    selectedConversation,
-    thinkingConvId,
-    setThinkingConvId,
-  } = useChat();
+  const { isThinking, selectedConversation, thinkingConvId } = useChat();
 
   // --- Keyboard shortcuts ---
   useEffect(() => {
@@ -140,44 +121,6 @@ export default function AIAssistantUI(): React.JSX.Element {
       createConversation();
     }
   }, []);
-
-  // --- Derived data ---
-  const filtered = useMemo(() => {
-    if (!query.trim()) return conversations;
-    const q = query.toLowerCase();
-    return conversations.filter(
-      (c) =>
-        c.title.toLowerCase().includes(q) || c.preview.toLowerCase().includes(q)
-    );
-  }, [conversations, query]);
-
-  // const folderCounts = useMemo(() => {
-  //   const map: Record<string, number> = Object.fromEntries(
-  //     folders.map((f) => [f.name, 0])
-  //   );
-  //   for (const c of conversations)
-  //     if (map[c.folder] != null) map[c.folder] += 1;
-  //   return map;
-  // }, [conversations, folders]);
-
-  // --- Actions ---
-
-  // function createFolder(): void {
-  //   const name = prompt("Folder name");
-  //   if (!name) return;
-  //   if (folders.some((f) => f.name.toLowerCase() === name.toLowerCase()))
-  //     return alert("Folder already exists.");
-  //   setFolders((prev) => [
-  //     ...prev,
-  //     { id: Math.random().toString(36).slice(2), name },
-  //   ]);
-  // }
-
-  function handleUseTemplate(template: Template): void {
-    if (composerRef.current?.insertTemplate) {
-      composerRef.current.insertTemplate(template.content);
-    }
-  }
 
   // === Render ===
   return (
@@ -217,25 +160,12 @@ export default function AIAssistantUI(): React.JSX.Element {
           query={query}
           setQuery={setQuery}
           searchRef={searchRef}
-          templates={templates}
-          setTemplates={setTemplates}
-          onUseTemplate={handleUseTemplate}
         />
 
         <main className="relative flex min-w-0 flex-1 flex-col">
           <Header />
           <ChatPane
             ref={composerRef}
-            // conversation={selected}
-            // onSend={(content: string) =>
-            //   selected && sendMessage(selected.id, content)
-            // }
-            // onEditMessage={(messageId: string, newContent: string) =>
-            //   selected && editMessage(selected.id, messageId, newContent)
-            // }
-            // onResendMessage={(messageId: string) =>
-            //   selected && resendMessage(selected.id, messageId)
-            // }
             isThinking={
               isThinking && thinkingConvId === selectedConversation?.id
             }

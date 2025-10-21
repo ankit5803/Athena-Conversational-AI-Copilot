@@ -2,11 +2,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Lightbulb } from "lucide-react";
 import { useState, FormEvent } from "react";
-import {
-  Folder,
-  CreateFolderModalProps,
-  Conversation,
-} from "../interfaces/interface";
+import { CreateFolderModalProps, Conversation } from "../interfaces/interface";
 import { useChat } from "./contexts/ChatContext";
 
 export default function CreateFolderModal({

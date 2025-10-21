@@ -34,12 +34,8 @@ interface ChatContextType {
     name: string;
     conversations: Conversation[];
   }) => Promise<void>;
-  // folderCounts: Record<string, number>;
-
   //   deleteConversation: (id: string) => Promise<void>;
   sendMessage: (content: string) => Promise<void>;
-  //   editMessage: (messageId: string, newContent: string) => Promise<void>;
-  //   resendMessage: (messageId: string) => Promise<void>;
   togglePin: (id: string) => void;
   isThinking: boolean;
   setIsThinking: React.Dispatch<React.SetStateAction<boolean>>;
@@ -57,7 +53,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [thinkingConvId, setThinkingConvId] = useState<string | null>(null);
   const [folders, setFolders] = useState<Folder[]>([]);
-  // const [folderCounts, setFolderCounts] = useState<Record<string, number>>({});
 
   // Derived arrays
   const pinned = conversations.filter((c) => c.pinned);
@@ -79,7 +74,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   // === Load conversations from backend ===
 
   const refreshConversations = async (userId: string) => {
-    // if (!userId) return;
     await axios
       .get(`/api/chat/${userId}`)
       .then((response) => {
@@ -352,46 +346,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     await streamAIResponse(selectedConversation.id, content);
   };
 
-  //   useEffect(() => {
-  //     console.log(conversations);
-  //   }, [conversations]);
-
   useEffect(() => {
     if (!isLoaded || !user) return;
     refreshConversations(user?.id as string);
     console.log(user?.id);
   }, [isLoaded, user]);
-
-  // === Edit existing message ===
-  //   const editMessage = async (messageId: string, newContent: string) => {
-  //     if (!selectedConversation) return;
-  //     try {
-  //       await axios.put(`/api/messages/${messageId}`, { content: newContent });
-  //       setSelectedConversation((prev) =>
-  //         prev
-  //           ? {
-  //               ...prev,
-  //               messages: prev.messages.map((m) =>
-  //                 (m as any)._id === messageId
-  //                   ? { ...m, content: newContent, editedAt: new Date() }
-  //                   : m
-  //               ),
-  //             }
-  //           : prev
-  //       );
-  //     } catch (err) {
-  //       console.error("Error editing message:", err);
-  //     }
-  //   };
-
-  // === Resend message (e.g. re-trigger AI response) ===
-  //   const resendMessage = async (messageId: string) => {
-  //     if (!selectedConversation) return;
-  //     const msg = selectedConversation.messages.find(
-  //       (m: any) => m._id === messageId
-  //     );
-  //     if (msg) await sendMessage(msg.content);
-  //   };
 
   // === Delete conversation ===
   //   const deleteConversation = async (id: string) => {
@@ -428,15 +387,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       });
   };
 
-  // === Folder counts ===
-  // useEffect(() => {
-  //   const counts: Record<string, number> = {};
-  //   conversations.forEach((c) => {
-  //     if (c.folder) counts[c.folder] = (counts[c.folder] || 0) + 1;
-  //   });
-  //   setFolderCounts(counts);
-  // }, [conversations]);
-
   return (
     <ChatContext.Provider
       value={{
@@ -451,12 +401,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         folders,
         setFolders,
         createFolder,
-        // folderCounts,
         createConversation,
         // deleteConversation,
         sendMessage,
-        // editMessage,
-        // resendMessage,
         togglePin,
         isThinking,
         setIsThinking,

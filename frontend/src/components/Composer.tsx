@@ -86,12 +86,6 @@ const Composer = forwardRef<ComposerHandle>(function Composer(
       setBusy(false);
     }
   }
-  // async (text) => {
-  //   if (!text.trim()) return;
-  //   setBusy(true);
-  //   await sendMessage(text);
-  //   setBusy(false);
-  // };
   const hasContent = value.length > 0;
 
   return (
