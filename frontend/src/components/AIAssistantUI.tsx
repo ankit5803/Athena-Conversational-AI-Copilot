@@ -204,7 +204,7 @@ export default function AIAssistantUI(): React.JSX.Element {
         </div>
       </div>
 
-      <div className="mx-auto flex h-[calc(100vh-0px)] max-w-[1400px]">
+      <div className="mx-auto flex h-[calc(100vh-0px)] max-w-full">
         <Sidebar
           open={sidebarOpen}
           onClose={() => setSidebarOpen(false)}

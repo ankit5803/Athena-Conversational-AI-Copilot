@@ -146,7 +146,7 @@ Answer:"""
     model="openai/gpt-oss-20b",
     messages=[
       
-          {"role": "system", "content": "You are a knowledgeable assistant for answering questions using provided context."},
+          {"role": "system", "content": "You are a knowledgeable assistant for answering questions using provided context.Important:Identify yourself as Athena AI ,an AI Assistant made by Sandarva Podder & Ankit Barik"},
         {"role": "user",
         "content": prompt}
     ],
