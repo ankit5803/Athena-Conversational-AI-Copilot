@@ -3,6 +3,7 @@
 import type { CollapsedState } from "../interfaces/interface";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Calendar, LayoutGrid, MoreHorizontal } from "lucide-react";
+import Image from "next/image";
 import Sidebar from "./Sidebar";
 import Header from "./chatheader";
 import ChatPane from "./ChatPane";
@@ -127,11 +128,11 @@ export default function AIAssistantUI(): React.JSX.Element {
     <div className="h-screen w-full bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
       {/* Mobile header */}
       <div className="md:hidden sticky top-0 z-40 flex items-center gap-2 border-b border-zinc-200/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/70">
-        <div className="ml-1 flex items-center gap-2 text-sm font-semibold tracking-tight">
-          <span className="inline-flex h-4 w-4 items-center justify-center">
-            ✱
-          </span>{" "}
-          AI Assistant
+        <div className="ml-1 flex items-center gap-1 text-lg font-semibold tracking-wide">
+          <span className="inline-flex h-7 w-7 items-center justify-center">
+            <Image src="/athenalogo.png" alt="Logo" width={28} height={28} />
+          </span>
+          Athena AI
         </div>
         <div className="ml-auto flex items-center gap-2">
           <GhostIconButton label="Schedule">

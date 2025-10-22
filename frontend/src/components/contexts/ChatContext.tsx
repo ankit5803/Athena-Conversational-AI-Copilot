@@ -21,6 +21,8 @@ interface ChatContextType {
   >;
   fetchUserDatandsaveUser: () => void;
   createConversation: (title?: string) => Promise<void>;
+  showCreateChatModal: boolean;
+  setShowCreateChatModal: React.Dispatch<React.SetStateAction<boolean>>;
   refreshConversations: (userId: string) => Promise<void>;
   setConversations: React.Dispatch<React.SetStateAction<Conversation[]>>;
   chatToDelete: Conversation | null;
@@ -58,6 +60,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
+  const [showCreateChatModal, setShowCreateChatModal] = useState(false);
   const [chatToDelete, setChatToDelete] = useState<Conversation | null>(null);
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [thinkingConvId, setThinkingConvId] = useState<string | null>(null);
@@ -455,6 +458,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         fetchUserDatandsaveUser,
         conversations,
         setConversations,
+        showCreateChatModal,
+        setShowCreateChatModal,
         chatToDelete,
         setChatToDelete,
         refreshConversations,

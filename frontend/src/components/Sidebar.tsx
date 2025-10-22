@@ -47,6 +47,8 @@ export default function Sidebar({
 }: SidebarProps) {
   const { user } = useUser();
   const {
+    showCreateChatModal,
+    setShowCreateChatModal,
     selectedConversation,
     setChatToDelete,
     pinned,
@@ -55,7 +57,7 @@ export default function Sidebar({
     setFolderToRename,
     setFolderToDelete,
   } = useChat();
-  const [showCreateChatModal, setShowCreateChatModal] = useState(false);
+
   const [showDeleteChatModal, setShowDeleteChatModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
@@ -89,7 +91,7 @@ export default function Sidebar({
         initial={{ width: 320 }}
         animate={{ width: 64 }}
         transition={{ type: "spring", stiffness: 260, damping: 28 }}
-        className="z-50 flex h-full shrink-0 flex-col border-r border-zinc-200/60 bg-white dark:border-zinc-800 dark:bg-zinc-900"
+        className="z-50 fixed top-12 sm:relative sm:top-0 flex h-full shrink-0 flex-col border-r border-zinc-200/60 bg-white dark:border-zinc-800 dark:bg-zinc-900"
       >
         <div className="flex items-center justify-center border-b border-zinc-200/60 px-3 py-3 dark:border-zinc-800">
           <button
@@ -154,7 +156,7 @@ export default function Sidebar({
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.5 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/60 md:hidden"
+            className="fixed inset-0 z-42 bg-black/60 md:hidden"
             onClick={onClose}
           />
         )}
@@ -199,15 +201,7 @@ export default function Sidebar({
               <div className="ml-auto flex items-center gap-1">
                 <button
                   onClick={() => setSidebarCollapsed(true)}
-                  className="hidden md:block rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
-                  aria-label="Close sidebar"
-                >
-                  <PanelLeftClose className="h-5 w-5" />
-                </button>
-
-                <button
-                  onClick={onClose}
-                  className="md:hidden rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
+                  className="block rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
                   aria-label="Close sidebar"
                 >
                   <PanelLeftClose className="h-5 w-5" />

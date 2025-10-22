@@ -89,7 +89,7 @@ const Composer = forwardRef<ComposerHandle>(function Composer(
   const hasContent = value.length > 0;
 
   return (
-    <div className="border-t border-zinc-200/60 p-4 dark:border-zinc-800">
+    <div className="ml-16 border-t border-zinc-200/60 p-4 dark:border-zinc-800">
       <div
         className={cls(
           "mx-auto flex flex-col rounded-2xl border bg-white shadow-sm dark:bg-zinc-950 transition-all duration-200",

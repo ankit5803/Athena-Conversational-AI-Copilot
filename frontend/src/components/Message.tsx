@@ -18,7 +18,7 @@ export default function Message({ role, children }: MessageProps) {
       )}
       <div
         className={cls(
-          "max-w-[95%] rounded-2xl px-3 py-2 text-sm shadow-sm",
+          "max-w-[80%] sm:max-w-[90%] rounded-2xl px-3 py-2 text-sm shadow-sm",
           isUser
             ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
             : isThinking
