@@ -2,12 +2,16 @@
 
 import { forwardRef, useImperativeHandle, useRef, Ref, useEffect } from "react";
 import { Pencil, RefreshCw, Check, X, Square } from "lucide-react";
+import BlurText from "./BlurText";
 import Message from "./Message";
 import Composer from "./Composer";
-import { ComposerHandle } from "@/interfaces/interface";
-import { timeAgo } from "../utils/util";
 import type { MessageType } from "@/interfaces/interface";
-import { ChatPaneProps, ChatPaneHandle } from "../interfaces/interface";
+import {
+  ComposerHandle,
+  ChatPaneProps,
+  ChatPaneHandle,
+} from "@/interfaces/interface";
+import { timeAgo } from "../utils/util";
 import { useChat } from "./contexts/ChatContext";
 
 function ThinkingMessage() {
@@ -40,7 +44,7 @@ const ChatPane = forwardRef<ChatPaneHandle, ChatPaneProps>(function ChatPane(
   { isThinking },
   ref: Ref<ChatPaneHandle>
 ) {
-  const { selectedConversation } = useChat();
+  const { conversations, selectedConversation } = useChat();
   const composerRef = useRef<ComposerHandle>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -61,7 +65,28 @@ const ChatPane = forwardRef<ChatPaneHandle, ChatPaneProps>(function ChatPane(
       behavior: "smooth",
     });
   }, [selectedConversation?.messages?.length]);
-  if (!selectedConversation) return null;
+  if (!selectedConversation)
+    return conversations.length === 0 ? (
+      <div className="h-full w-full flex justify-center items-center">
+        <BlurText
+          text="Start a Conversation to Begin"
+          delay={150}
+          animateBy="words"
+          direction="top"
+          className="text-4xl mb-8"
+        />
+      </div>
+    ) : (
+      <div className="h-full w-full flex justify-center items-center">
+        <BlurText
+          text="Select a Chat or Start a New One"
+          delay={150}
+          animateBy="words"
+          direction="top"
+          className="text-4xl mb-8"
+        />
+      </div>
+    );
 
   const tags = ["Certified", "Personalized", "Experienced", "Helpful"];
   const messages: MessageType[] = Array.isArray(selectedConversation.messages)

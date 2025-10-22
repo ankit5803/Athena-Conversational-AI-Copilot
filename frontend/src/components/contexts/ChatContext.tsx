@@ -23,6 +23,8 @@ interface ChatContextType {
   createConversation: (title?: string) => Promise<void>;
   refreshConversations: (userId: string) => Promise<void>;
   setConversations: React.Dispatch<React.SetStateAction<Conversation[]>>;
+  chatToDelete: Conversation | null;
+  setChatToDelete: React.Dispatch<React.SetStateAction<Conversation | null>>;
   pinned: Conversation[];
   recent: Conversation[];
   folders: Folder[];
@@ -34,7 +36,13 @@ interface ChatContextType {
     name: string;
     conversations: Conversation[];
   }) => Promise<void>;
-  //   deleteConversation: (id: string) => Promise<void>;
+  folderToRename: Folder | null;
+  setFolderToRename: React.Dispatch<React.SetStateAction<Folder | null>>;
+  folderToDelete: Folder | null;
+  setFolderToDelete: React.Dispatch<React.SetStateAction<Folder | null>>;
+  renameFolder: (id: string, newName: string) => Promise<void>;
+  deleteFolder: (id: string) => Promise<void>;
+  deleteConversation: (id: string) => Promise<void>;
   sendMessage: (content: string) => Promise<void>;
   togglePin: (id: string) => void;
   isThinking: boolean;
@@ -50,9 +58,12 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
+  const [chatToDelete, setChatToDelete] = useState<Conversation | null>(null);
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [thinkingConvId, setThinkingConvId] = useState<string | null>(null);
   const [folders, setFolders] = useState<Folder[]>([]);
+  const [folderToRename, setFolderToRename] = useState<Folder | null>(null);
+  const [folderToDelete, setFolderToDelete] = useState<Folder | null>(null);
 
   // Derived arrays
   const pinned = conversations.filter((c) => c.pinned);
@@ -142,6 +153,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     // Optimistically update frontend immediately
     setConversations((prev) =>
       prev.map((c) => (c.id === id ? { ...c, pinned: !c.pinned } : c))
+    );
+    setFolders((prev) =>
+      prev.map((folder) => ({
+        ...folder,
+        conversations: folder.conversations.map((conv) =>
+          conv.id === id ? { ...conv, pinned: !conv.pinned } : conv
+        ),
+      }))
     );
 
     try {
@@ -264,6 +283,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                   )
                 );
                 setSelectedConversation(updatedChat);
+                setFolders((prev) =>
+                  prev.map((folder) => ({
+                    ...folder,
+                    conversations: folder.conversations.map((conv) =>
+                      conv.id === updatedChat.id ? updatedChat : conv
+                    ),
+                  }))
+                );
               })
               .catch((err) => {
                 console.error("Error saving AI message:", err);
@@ -340,6 +367,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           )
         );
         setSelectedConversation(updatedChat);
+        setFolders((prev) =>
+          prev.map((folder) => ({
+            ...folder,
+            conversations: folder.conversations.map((conv) =>
+              conv.id === updatedChat.id ? updatedChat : conv
+            ),
+          }))
+        );
       })
       .catch((err) => {
         console.error("Error sending message:", err);
@@ -357,15 +392,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }, [isLoaded, user]);
 
   // === Delete conversation ===
-  //   const deleteConversation = async (id: string) => {
-  //     try {
-  //       await axios.delete(`/api/chat/${id}`);
-  //       setConversations((prev) => prev.filter((c) => c._id !== id));
-  //       if (selectedConversation?._id === id) setSelectedConversation(null);
-  //     } catch (err) {
-  //       console.error("Error deleting conversation:", err);
-  //     }
-  //   };
+  const deleteConversation = async (id: string) => {
+    setConversations((prev) => prev.filter((c) => c.id !== id));
+    if (selectedConversation?.id === id) setSelectedConversation(null);
+    setFolders((prev) =>
+      prev.map((folder) => ({
+        ...folder,
+        conversations: folder.conversations.filter((conv) => conv.id !== id),
+      }))
+    );
+    await axios.delete(`/api/chat/${id}`);
+  };
 
   const createFolder = async ({
     name,
@@ -381,7 +418,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         userId: user?.id,
       })
       .then((response) => {
-        const folder = { ...response.data, id: response.data._id };
+        const folder = {
+          ...response.data,
+          id: response.data._id,
+          conversations: response.data.conversations.map((c: any) => ({
+            ...c,
+            id: c._id,
+          })),
+        };
         setFolders((prev) => [...prev, folder]);
 
         console.log(folder);
@@ -391,12 +435,28 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       });
   };
 
+  const renameFolder = async (id: string, newName: string) => {
+    // Optimistically update frontend immediately
+    setFolders((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, name: newName } : f))
+    );
+    await axios.patch(`/api/folder/${id}`, { newName });
+  };
+
+  const deleteFolder = async (id: string) => {
+    // Optimistically update frontend immediately
+    setFolders((prev) => prev.filter((f) => f.id !== id));
+    await axios.delete(`/api/folder/${id}`);
+  };
+
   return (
     <ChatContext.Provider
       value={{
         fetchUserDatandsaveUser,
         conversations,
         setConversations,
+        chatToDelete,
+        setChatToDelete,
         refreshConversations,
         selectedConversation,
         setSelectedConversation,
@@ -405,8 +465,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         folders,
         setFolders,
         createFolder,
+        folderToRename,
+        setFolderToRename,
+        folderToDelete,
+        setFolderToDelete,
+        renameFolder,
+        deleteFolder,
         createConversation,
-        // deleteConversation,
+        deleteConversation,
         sendMessage,
         togglePin,
         isThinking,

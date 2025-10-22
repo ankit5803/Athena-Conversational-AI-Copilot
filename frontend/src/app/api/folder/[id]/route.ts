@@ -17,3 +17,40 @@ export async function GET(
   });
   return NextResponse.json(folders);
 }
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    await connectToDatabase();
+    const { id } = await params;
+    const { newName } = await request.json();
+    await Folder.findByIdAndUpdate(id, { name: newName });
+    return NextResponse.json({ status: "ok" });
+  } catch (error) {
+    console.error("Error renaming folder:", error);
+    return NextResponse.json(
+      { error: "Failed to rename folder" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    await connectToDatabase();
+    const { id } = await params;
+    await Folder.findByIdAndDelete(id);
+    return NextResponse.json({ status: "ok" });
+  } catch (error) {
+    console.error("Error deleting folder:", error);
+    return NextResponse.json(
+      { error: "Failed to delete folder" },
+      { status: 500 }
+    );
+  }
+}

@@ -25,20 +25,10 @@ interface Folder {
   conversations: Conversation[];
 }
 
-interface Template {
-  id: string;
-  name: string;
-  content: string;
-  snippet?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
 interface CollapsedState {
   pinned: boolean;
   recent: boolean;
   folders: boolean;
-  templates: boolean;
 }
 
 interface Chatbot {
@@ -72,21 +62,15 @@ interface ConversationRowProps {
   data: Conversation;
   active: boolean;
   showMeta?: boolean;
+  onDelete?: () => void;
+  isFolderRow?: boolean;
 }
 
 interface FolderRowProps {
   name: string;
   conversations: Conversation[];
-  onDeleteFolder?: (folderName: string) => void;
-  onRenameFolder?: (oldName: string, newName: string) => void;
-}
-
-interface TemplateRowProps {
-  template: Template;
-  onUseTemplate?: (template: Template) => void;
-  onEditTemplate?: (template: Template) => void;
-  onRenameTemplate?: (id: string, newName: string) => void;
-  onDeleteTemplate?: (id: string) => void;
+  onDeleteFolder: () => void;
+  onRenameFolder: () => void;
 }
 
 interface ThemeToggleProps {
@@ -94,22 +78,12 @@ interface ThemeToggleProps {
   setTheme: React.Dispatch<React.SetStateAction<"light" | "dark">>;
 }
 
-interface CreateFolderModalProps {
+interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onCreateNewChat?: () => void;
 }
 
-interface CreateTemplateModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onCreateTemplate: (template: Template) => void;
-  editingTemplate?: Template | null;
-}
-
-interface SearchModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
 interface SettingsPopoverProps {
   children: ReactNode;
 }
@@ -151,19 +125,14 @@ export type {
   MessageType,
   Conversation,
   Folder,
-  Template,
   CollapsedState,
   SidebarProps,
   SidebarSectionProps,
   ConversationRowProps,
   FolderRowProps,
-  TemplateRowProps,
   ThemeToggleProps,
-  CreateFolderModalProps,
-  CreateTemplateModalProps,
-  SearchModalProps,
+  ModalProps,
   SettingsPopoverProps,
-  // HeaderProps,
   Chatbot,
   ActionItem,
   ComposerActionsPopoverProps,

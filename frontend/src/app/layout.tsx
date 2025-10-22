@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Athena AI - Your Research Copilot",
+  icons: "/favicon.ico",
   description:
     "Athena AI is your research copilot, helping you find and summarize academic papers with ease.",
 };
