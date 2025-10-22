@@ -11,13 +11,21 @@ import {
   FolderIcon,
   Settings,
 } from "lucide-react";
-import type { Folder, SidebarProps, Template } from "../interfaces/interface";
+import type {
+  Folder,
+  SidebarProps,
+  Conversation,
+} from "../interfaces/interface";
 import SidebarSection from "./SidebarSection";
 import ConversationRow from "./ConversationRow";
 import FolderRow from "./FolderRow";
 import ThemeToggle from "./ThemeToggle";
+import CreateNewChatModal from "./CreateNewChatModal";
+import DeleteChatModal from "./DeleteChatModal";
 import CreateFolderModal from "./CreateFolderModal";
 import SearchModal from "./SearchModal";
+import RenameFolderModal from "./RenameFolderModal";
+import DeleteFolderModal from "./DeleteFolderModal";
 import SettingsPopover from "./SettingsPopover";
 import { cls } from "../utils/util";
 import { useState } from "react";
@@ -38,31 +46,42 @@ export default function Sidebar({
   setSidebarCollapsed,
 }: SidebarProps) {
   const { user } = useUser();
-  const { createConversation, selectedConversation, pinned, recent, folders } =
-    useChat();
-  const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
+  const {
+    showCreateChatModal,
+    setShowCreateChatModal,
+    selectedConversation,
+    setChatToDelete,
+    pinned,
+    recent,
+    folders,
+    setFolderToRename,
+    setFolderToDelete,
+  } = useChat();
+
+  const [showDeleteChatModal, setShowDeleteChatModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
+  const [showRenameFolderModal, setShowRenameFolderModal] = useState(false);
+  const [showDeleteFolderModal, setShowDeleteFolderModal] = useState(false);
 
   // === Folder Logic ===
   const getConversationsByFolder = (folder: Folder) => {
     const convs = folders.find((f) => f.id === folder.id)?.conversations;
     return convs || [];
   };
-
-  const handleDeleteFolder = (folderName: string) => {
-    // const updatedConversations = conversations.map((conv) =>
-    //   conv.folder === folderName ? { ...conv, folder: null } : conv
-    // );
-    // console.log("Delete folder:", folderName, updatedConversations);
-    console.log("Delete folder:", folderName);
+  const handleDeleteConversation = (conversation: Conversation) => {
+    setChatToDelete(conversation);
+    setShowDeleteChatModal(true);
   };
 
-  const handleRenameFolder = (oldName: string, newName: string) => {
-    // const updatedConversations = conversations.map((conv) =>
-    //   conv.folder === oldName ? { ...conv, folder: newName } : conv
-    // );
-    // console.log("Rename folder:", oldName, "→", newName, updatedConversations);
-    console.log("Rename folder:", oldName, "→", newName);
+  const handleDeleteFolder = (folder: Folder) => {
+    setFolderToDelete(folder);
+    setShowDeleteFolderModal(true);
+  };
+
+  const handleRenameFolder = (folder: Folder) => {
+    setFolderToRename(folder);
+    setShowRenameFolderModal(true);
   };
 
   // === Collapsed Sidebar ===
@@ -72,7 +91,7 @@ export default function Sidebar({
         initial={{ width: 320 }}
         animate={{ width: 64 }}
         transition={{ type: "spring", stiffness: 260, damping: 28 }}
-        className="z-50 flex h-full shrink-0 flex-col border-r border-zinc-200/60 bg-white dark:border-zinc-800 dark:bg-zinc-900"
+        className="z-50 fixed top-12 sm:relative sm:top-0 flex h-full shrink-0 flex-col border-r border-zinc-200/60 bg-white dark:border-zinc-800 dark:bg-zinc-900"
       >
         <div className="flex items-center justify-center border-b border-zinc-200/60 px-3 py-3 dark:border-zinc-800">
           <button
@@ -87,7 +106,7 @@ export default function Sidebar({
 
         <div className="flex flex-col items-center gap-4 pt-4">
           <button
-            onClick={() => createConversation}
+            onClick={() => setShowCreateChatModal(true)}
             className="rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
             title="New Chat"
           >
@@ -113,6 +132,15 @@ export default function Sidebar({
             </SettingsPopover>
           </div>
         </div>
+        <CreateNewChatModal
+          isOpen={showCreateChatModal}
+          onClose={() => setShowCreateChatModal(false)}
+        />
+        <SearchModal
+          isOpen={showSearchModal}
+          onClose={() => setShowSearchModal(false)}
+          onCreateNewChat={() => setShowCreateChatModal(true)}
+        />
       </motion.aside>
     );
   }
@@ -128,7 +156,7 @@ export default function Sidebar({
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.5 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/60 md:hidden"
+            className="fixed inset-0 z-42 bg-black/60 md:hidden"
             onClick={onClose}
           />
         )}
@@ -152,7 +180,7 @@ export default function Sidebar({
             <div className="flex items-center gap-2 border-b border-zinc-200/60 px-3 py-3 dark:border-zinc-800">
               <div className="flex items-center gap-0">
                 <div
-                  className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br text-white dark:text-zinc-900"
+                  className="grid h-8 w-8 place-items-center rounded-xl bg-linear-to-br text-white dark:text-zinc-900"
                   // from-blue-500
                   // to-indigo-500
                   // dark:from-zinc-200
@@ -173,15 +201,7 @@ export default function Sidebar({
               <div className="ml-auto flex items-center gap-1">
                 <button
                   onClick={() => setSidebarCollapsed(true)}
-                  className="hidden md:block rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
-                  aria-label="Close sidebar"
-                >
-                  <PanelLeftClose className="h-5 w-5" />
-                </button>
-
-                <button
-                  onClick={onClose}
-                  className="md:hidden rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
+                  className="block rounded-xl p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
                   aria-label="Close sidebar"
                 >
                   <PanelLeftClose className="h-5 w-5" />
@@ -213,7 +233,7 @@ export default function Sidebar({
             {/* New Chat Button */}
             <div className="px-3 pt-3">
               <button
-                onClick={() => [createConversation()]}
+                onClick={() => setShowCreateChatModal(true)}
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-white dark:text-zinc-900 cursor-pointer"
                 title="New Chat (⌘N)"
               >
@@ -273,6 +293,7 @@ export default function Sidebar({
                         data={c}
                         active={c.id === selectedConversation?.id}
                         showMeta
+                        onDelete={() => handleDeleteConversation(c)}
                       />
                     </div>
                   ))
@@ -304,8 +325,8 @@ export default function Sidebar({
                       key={f.id}
                       name={f.name}
                       conversations={getConversationsByFolder(f)}
-                      onDeleteFolder={handleDeleteFolder}
-                      onRenameFolder={handleRenameFolder}
+                      onDeleteFolder={() => handleDeleteFolder(f)}
+                      onRenameFolder={() => handleRenameFolder(f)}
                     />
                   ))}
                 </div>
@@ -351,6 +372,15 @@ export default function Sidebar({
       </AnimatePresence>
 
       {/* Modals */}
+      <CreateNewChatModal
+        isOpen={showCreateChatModal}
+        onClose={() => setShowCreateChatModal(false)}
+      />
+
+      <DeleteChatModal
+        isOpen={showDeleteChatModal}
+        onClose={() => setShowDeleteChatModal(false)}
+      />
       <CreateFolderModal
         isOpen={showCreateFolderModal}
         onClose={() => setShowCreateFolderModal(false)}
@@ -359,6 +389,16 @@ export default function Sidebar({
       <SearchModal
         isOpen={showSearchModal}
         onClose={() => setShowSearchModal(false)}
+        onCreateNewChat={() => setShowCreateChatModal(true)}
+      />
+
+      <RenameFolderModal
+        isOpen={showRenameFolderModal}
+        onClose={() => setShowRenameFolderModal(false)}
+      />
+      <DeleteFolderModal
+        isOpen={showDeleteFolderModal}
+        onClose={() => setShowDeleteFolderModal(false)}
       />
     </>
   );

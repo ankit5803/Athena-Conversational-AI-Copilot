@@ -2,18 +2,15 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Lightbulb } from "lucide-react";
 import { useState, FormEvent } from "react";
-import { CreateFolderModalProps, Conversation } from "../interfaces/interface";
+import { ModalProps, Conversation } from "../interfaces/interface";
 import { useChat } from "./contexts/ChatContext";
 
-export default function CreateFolderModal({
-  isOpen,
-  onClose,
-}: CreateFolderModalProps) {
+export default function CreateFolderModal({ isOpen, onClose }: ModalProps) {
   const [folderName, setFolderName] = useState("");
   const [selectedConversations, setSelectedConversations] = useState<
     Conversation[]
   >([]);
-  const { conversations, createFolder, folders } = useChat();
+  const { conversations, createFolder } = useChat();
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -67,7 +64,7 @@ export default function CreateFolderModal({
             className="fixed overflow-y-auto max-h-[60vh] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
           >
             <div className=" flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Folder name</h2>
+              <h2 className="text-lg font-semibold">Create New Folder</h2>
               <button
                 onClick={handleCancel}
                 className="rounded-lg p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"

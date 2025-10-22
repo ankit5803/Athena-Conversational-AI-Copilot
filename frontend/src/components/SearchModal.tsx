@@ -2,7 +2,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, SearchIcon, Plus, Clock } from "lucide-react";
 import { useState, useEffect, useMemo, ChangeEvent } from "react";
-import { Conversation, SearchModalProps } from "../interfaces/interface";
+import { Conversation, ModalProps } from "../interfaces/interface";
 import { useChat } from "./contexts/ChatContext";
 
 function getTimeGroup(
@@ -20,11 +20,14 @@ function getTimeGroup(
   return "Older";
 }
 
-export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
+export default function SearchModal({
+  isOpen,
+  onClose,
+  onCreateNewChat,
+}: ModalProps) {
   const [query, setQuery] = useState<string>("");
 
-  const { conversations, createConversation, setSelectedConversation } =
-    useChat();
+  const { conversations, setSelectedConversation } = useChat();
   const filteredConversations = useMemo(() => {
     if (!query.trim()) return conversations;
     const q = query.toLowerCase();
@@ -64,7 +67,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
   };
 
   const handleNewChat = () => {
-    createConversation();
+    onCreateNewChat?.();
     handleClose();
   };
 
@@ -117,7 +120,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
               />
               <button
                 onClick={handleClose}
-                className="rounded-lg p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                className="rounded-lg p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -129,7 +132,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
               <div className="border-b border-zinc-200 p-2 dark:border-zinc-800">
                 <button
                   onClick={handleNewChat}
-                  className="flex w-full items-center gap-3 rounded-lg p-3 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  className="flex w-full items-center gap-3 rounded-lg p-3 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
                 >
                   <Plus className="h-5 w-5 text-zinc-500" />
                   <span className="font-medium">New chat</span>
@@ -154,7 +157,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                           <button
                             key={conv.id}
                             onClick={() => handleSelectConversation(conv)}
-                            className="flex w-full items-center gap-3 rounded-lg p-3 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                            className="flex w-full items-center gap-3 rounded-lg p-3 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
                           >
                             <Clock className="h-4 w-4 text-zinc-400 shrink-0" />
                             <div className="min-w-0 flex-1">

@@ -41,22 +41,13 @@ export default function FolderRow({
   }, [showMenu]);
 
   const handleRename = () => {
-    const newName = prompt(`Rename folder "${name}" to:`, name);
-    if (newName && newName.trim() && newName !== name) {
-      onRenameFolder?.(name, newName.trim());
-    }
     setShowMenu(false);
+    onRenameFolder();
   };
 
   const handleDelete = () => {
-    if (
-      confirm(
-        `Are you sure you want to delete the folder "${name}"? This will move all conversations to the root level.`
-      )
-    ) {
-      onDeleteFolder?.(name);
-    }
     setShowMenu(false);
+    onDeleteFolder();
   };
 
   return (
@@ -99,7 +90,7 @@ export default function FolderRow({
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="absolute right-0 top-full z-[100] mt-1 w-32 rounded-lg border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-800 dark:bg-zinc-900"
+                  className="absolute right-1/5 top-full z-100 mt-1 w-32 rounded-lg border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-800 dark:bg-zinc-900"
                 >
                   <button
                     onClick={handleRename}
@@ -134,6 +125,7 @@ export default function FolderRow({
                   key={conversation.id}
                   data={conversation}
                   active={conversation.id == selectedConversation?.id}
+                  isFolderRow={true}
                   showMeta
                 />
               ))}

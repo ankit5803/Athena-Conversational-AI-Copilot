@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Star } from "lucide-react";
+import { Star, Trash2 } from "lucide-react";
 import { ConversationRowProps } from "@/interfaces/interface";
 import { cls, timeAgo } from "../utils/util";
 import { useChat } from "./contexts/ChatContext";
@@ -9,6 +9,8 @@ export default function ConversationRow({
   data,
   active,
   showMeta = false,
+  onDelete,
+  isFolderRow = false,
 }: ConversationRowProps) {
   const { setSelectedConversation, togglePin } = useChat();
   const count = Array.isArray(data.messages)
@@ -32,9 +34,11 @@ export default function ConversationRow({
             <span className="truncate text-sm font-medium tracking-tight">
               {data.title}
             </span>
-            <span className="shrink-0 text-[11px] text-zinc-500 dark:text-zinc-400">
-              {timeAgo(data.updatedAt)}
-            </span>
+            {!isFolderRow && (
+              <span className="shrink-0 text-[11px] text-zinc-500 dark:text-zinc-400">
+                {timeAgo(data.updatedAt)}
+              </span>
+            )}
           </div>
           {showMeta && (
             <div className="mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400">
@@ -43,21 +47,37 @@ export default function ConversationRow({
           )}
         </div>
 
-        <div
-          onClick={(e) => {
-            e.stopPropagation();
-            togglePin(data.id);
-          }}
-          title={data.pinned ? "Unpin" : "Pin"}
-          className="rounded-md p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-700/60"
-          aria-label={data.pinned ? "Unpin conversation" : "Pin conversation"}
-        >
-          {data.pinned ? (
-            <Star className="h-4 w-4 fill-zinc-800 text-zinc-800 dark:fill-zinc-200 dark:text-zinc-200" />
-          ) : (
-            <Star className="h-4 w-4" />
-          )}
-        </div>
+        {!isFolderRow && (
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              togglePin(data.id);
+            }}
+            title={data.pinned ? "Unpin" : "Pin"}
+            className="rounded-md p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-700/60"
+            aria-label={data.pinned ? "Unpin conversation" : "Pin conversation"}
+          >
+            {data.pinned ? (
+              <Star className="h-4 w-4 fill-zinc-800 text-zinc-800 dark:fill-zinc-200 dark:text-zinc-200" />
+            ) : (
+              <Star className="h-4 w-4" />
+            )}
+          </div>
+        )}
+
+        {onDelete && (
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete?.();
+            }}
+            title="Delete"
+            className="rounded-md p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-700/60"
+            aria-label="Delete chat"
+          >
+            <Trash2 className="h-4 w-4 text-red-500" />
+          </div>
+        )}
       </button>
     </div>
   );
