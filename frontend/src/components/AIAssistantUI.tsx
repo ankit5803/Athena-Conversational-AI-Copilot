@@ -127,7 +127,7 @@ export default function AIAssistantUI(): React.JSX.Element {
   return (
     <div className="h-screen w-full bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
       {/* Mobile header */}
-      <div className="md:hidden sticky top-0 z-40 flex items-center gap-2 border-b border-zinc-200/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/70">
+      <div className="sm:hidden fixed w-full top-0 z-40 flex items-center gap-2 border-b border-zinc-200/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/70">
         <div className="ml-1 flex items-center gap-1 text-lg font-semibold tracking-wide">
           <span className="inline-flex h-7 w-7 items-center justify-center">
             <Image src="/athenalogo.png" alt="Logo" width={28} height={28} />
@@ -135,20 +135,11 @@ export default function AIAssistantUI(): React.JSX.Element {
           Athena AI
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <GhostIconButton label="Schedule">
-            <Calendar className="h-4 w-4" />
-          </GhostIconButton>
-          <GhostIconButton label="Apps">
-            <LayoutGrid className="h-4 w-4" />
-          </GhostIconButton>
-          <GhostIconButton label="More">
-            <MoreHorizontal className="h-4 w-4" />
-          </GhostIconButton>
           <ThemeToggle theme={theme} setTheme={setTheme} />
         </div>
       </div>
 
-      <div className="mx-auto flex h-[calc(100vh-0px)] max-w-full">
+      <div className="mx-auto flex h-screen max-w-full">
         <Sidebar
           open={sidebarOpen}
           onClose={() => setSidebarOpen(false)}

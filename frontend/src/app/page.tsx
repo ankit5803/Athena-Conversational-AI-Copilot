@@ -10,7 +10,7 @@ export default function Home() {
     <div className="w-screen h-screen flex items-center justify-center">
       <div className="fixed w-full h-full flex flex-col items-center justify-center top:0 right:0 bottom:0 left:0 bg-transparent">
         <Header />
-        <h1 className="flex gap-2 flex-wrap mx-auto max-w-4xl text-center text-2xl font-bold text-slate-700 md:text-4xl lg:text-7xl dark:text-slate-300">
+        <h1 className="flex md:gap-2 flex-wrap mx-auto max-w-4xl text-center text-3xl font-bold text-slate-700 md:text-4xl lg:text-7xl dark:text-slate-300">
           {"Athena AI".split(" ").map((word, index) => (
             <motion.span
               key={index}
@@ -55,7 +55,7 @@ export default function Home() {
             duration: 0.3,
             delay: 0.8,
           }}
-          className="mx-auto max-w-2xl py-2 text-center text-lg font-normal text-neutral-600 dark:text-neutral-400"
+          className="mx-auto w-[70vw] md:w-full max-w-2xl py-2 text-center text-lg font-normal text-neutral-600 dark:text-neutral-400"
         >
           With Athena, you can launch your website in hours, not days. Try our
           best in class, state of the art, cutting edge AI tools to get your

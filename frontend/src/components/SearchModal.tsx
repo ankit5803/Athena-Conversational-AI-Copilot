@@ -105,7 +105,7 @@ export default function SearchModal({
             initial={{ opacity: 0, scale: 0.95, y: -20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
-            className="fixed left-1/2 top-[20%] z-50 w-full max-w-2xl -translate-x-1/2 rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-900"
+            className="fixed left-1/2 top-[20%] z-50 w-[80vw] sm:w-full max-w-2xl -translate-x-1/2 rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-900"
           >
             {/* Search Header */}
             <div className="flex items-center gap-3 border-b border-zinc-200 p-4 dark:border-zinc-800">

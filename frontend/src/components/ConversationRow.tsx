@@ -54,7 +54,7 @@ export default function ConversationRow({
               togglePin(data.id);
             }}
             title={data.pinned ? "Unpin" : "Pin"}
-            className="rounded-md p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-700/60"
+            className="rounded-md p-1 text-zinc-500 lg:opacity-0 opacity:100 transition group-hover:opacity-100 hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-700/60"
             aria-label={data.pinned ? "Unpin conversation" : "Pin conversation"}
           >
             {data.pinned ? (
@@ -72,7 +72,7 @@ export default function ConversationRow({
               onDelete?.();
             }}
             title="Delete"
-            className="rounded-md p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-700/60"
+            className="rounded-md p-1 text-zinc-500 lg:opacity-0 opacity:100 transition group-hover:opacity-100 hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-700/60"
             aria-label="Delete chat"
           >
             <Trash2 className="h-4 w-4 text-red-500" />

@@ -89,7 +89,7 @@ const Composer = forwardRef<ComposerHandle>(function Composer(
   const hasContent = value.length > 0;
 
   return (
-    <div className="ml-16 border-t border-zinc-200/60 p-4 dark:border-zinc-800">
+    <div className="border-t border-zinc-200/60 p-4 dark:border-zinc-800">
       <div
         className={cls(
           "mx-auto flex flex-col rounded-2xl border bg-white shadow-sm dark:bg-zinc-950 transition-all duration-200",
@@ -159,7 +159,7 @@ const Composer = forwardRef<ComposerHandle>(function Composer(
         </div>
       </div>
 
-      <div className="mx-auto mt-2 max-w-3xl px-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+      <div className="hidden lg:block mx-auto mt-2 max-w-3xl px-1 text-[11px] text-zinc-500 dark:text-zinc-400">
         Press{" "}
         <kbd className="rounded border border-zinc-300 bg-zinc-50 px-1 dark:border-zinc-600 dark:bg-zinc-800">
           Enter

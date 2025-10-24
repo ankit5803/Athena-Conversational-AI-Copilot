@@ -79,7 +79,7 @@ export default function FolderRow({
                 e.stopPropagation();
                 setShowMenu((prev) => !prev);
               }}
-              className="rounded p-1 opacity-0 transition-opacity hover:bg-zinc-200 dark:hover:bg-zinc-700 group-hover:opacity-100 cursor-pointer"
+              className="rounded p-1 lg:opacity-0 opacity:100 transition-opacity hover:bg-zinc-200 dark:hover:bg-zinc-700 group-hover:opacity-100 cursor-pointer"
             >
               <MoreHorizontal className="h-3 w-3" />
             </button>

@@ -68,29 +68,29 @@ const ChatPane = forwardRef<ChatPaneHandle, ChatPaneProps>(function ChatPane(
   }, [selectedConversation?.messages?.length]);
   if (!selectedConversation)
     return conversations.length === 0 ? (
-      <div className="h-full w-full flex flex-col justify-center items-center">
+      <div className="ml-16 sm:ml-0 w-[calc(100%-64px)] h-full flex flex-col justify-center items-center ">
         <BlurText
           text="Start a Conversation to Begin"
           delay={150}
           animateBy="words"
           direction="top"
-          className="text-4xl mb-8"
+          className="text-xl sm:text-3xl lg:text-4xl xl:text-5xl mb-8"
         />
         <button
           onClick={() => setShowCreateChatModal(true)}
-          className="cursor-pointer transform rounded-full bg-black px-6 py-2 font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200 animate-bounce"
+          className="cursor-pointer w-fit transform rounded-full bg-black px-6 py-2 font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200 animate-bounce"
         >
           Start New Chat
         </button>
       </div>
     ) : (
-      <div className="h-full w-full flex justify-center items-center">
+      <div className="ml-16 sm:ml-0 h-full w-calc(100%-64px) flex justify-center items-center">
         <BlurText
           text="Select a Chat or Start a New One"
           delay={150}
           animateBy="words"
           direction="top"
-          className="text-4xl mb-8"
+          className="text-lg sm:text-2xl lg:text-4xl xl:text-5xl mb-8 "
         />
       </div>
     );
@@ -102,10 +102,10 @@ const ChatPane = forwardRef<ChatPaneHandle, ChatPaneProps>(function ChatPane(
   const count = messages.length || selectedConversation.messageCount || 0;
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col">
+    <div className="flex ml-16 sm:ml-0 mt-10 sm:mt-0 min-h-0 flex-1 flex-col">
       <div
         ref={scrollRef}
-        className="flex-1 ml-16 sm:ml-0 space-y-5 overflow-y-auto px-4 py-6 sm:px-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none]"
+        className="flex-1 space-y-5 overflow-y-auto px-4 py-6 sm:px-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none]"
       >
         <div className="mb-2 text-3xl font-serif tracking-tight sm:text-4xl md:text-5xl">
           <span className="block leading-[1.05] font-sans text-2xl">

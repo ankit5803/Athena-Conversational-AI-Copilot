@@ -156,7 +156,7 @@ export default function Sidebar({
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.5 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-42 bg-black/60 md:hidden"
+            className="fixed inset-0 z-42 bg-black/60 sm:hidden"
             onClick={onClose}
           />
         )}
@@ -173,7 +173,7 @@ export default function Sidebar({
             transition={{ type: "spring", stiffness: 260, damping: 28 }}
             className={cls(
               "z-50 flex h-full w-80 shrink-0 flex-col border-r border-zinc-200/60 bg-white dark:border-zinc-800 dark:bg-zinc-900",
-              "fixed inset-y-0 left-0 md:static md:translate-x-0"
+              "fixed inset-y-0 left-0 sm:static sm:translate-x-0"
             )}
           >
             {/* Header */}
