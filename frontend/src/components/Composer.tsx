@@ -86,7 +86,7 @@ const Composer = forwardRef<ComposerHandle>(function Composer(
       setBusy(false);
     }
   }
-  const hasContent = value.length > 0;
+  // const hasContent = value.length > 0;
 
   return (
     <div className="border-t border-zinc-200/60 p-4 dark:border-zinc-800">
@@ -107,7 +107,7 @@ const Composer = forwardRef<ComposerHandle>(function Composer(
             rows={1}
             className={cls(
               "w-full resize-none bg-transparent text-sm outline-none placeholder:text-zinc-400 transition-all duration-200",
-              "px-0 py-2 min-h-[40px] text-left"
+              "px-0 py-2 min-h-10 text-left"
             )}
             style={{
               height: "auto",
