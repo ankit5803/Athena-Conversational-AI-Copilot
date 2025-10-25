@@ -84,7 +84,7 @@ const ChatPane = forwardRef<ChatPaneHandle, ChatPaneProps>(function ChatPane(
         </button>
       </div>
     ) : (
-      <div className="ml-16 sm:ml-0 h-full w-calc(100%-64px) flex justify-center items-center">
+      <div className="ml-16 sm:ml-0 h-full w-[calc(100%-64px)] flex justify-center items-center">
         <BlurText
           text="Select a Chat or Start a New One"
           delay={150}
