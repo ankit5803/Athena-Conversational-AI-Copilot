@@ -1,13 +1,14 @@
-# 🧠 Athena Conversational AI Copilot
+# 🧠 Athena Conversational AI Research Copilot
 
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript)
-![TailwindCSS](https://img.shields.io/badge/TailwindCSS-38B2AC?style=for-the-badge&logo=tailwindcss)
-![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb)
-![Pinecone](https://img.shields.io/badge/Pinecone-3B82F6?style=for-the-badge&logo=pinecone)
-![Groq](https://img.shields.io/badge/Groq-412991?style=for-the-badge&logo=groq)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker)
+![MongoDB](https://img.shields.io/badge/MongoDB-FFFFFF?style=for-the-badge&logo=mongodb)
+![TypeScript](https://img.shields.io/badge/TypeScript-000000?style=for-the-badge&logo=typescript)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-FFFFFF?style=for-the-badge&logo=tailwindcss)
+![Render](https://img.shields.io/badge/Render-000000?style=for-the-badge&logo=render)
+![Pinecone](https://img.shields.io/badge/Pinecone-FFFFFF?style=for-the-badge&logo=pinecone)
+![Groq](https://img.shields.io/badge/Groq-000000?style=for-the-badge&logo=groq)
+![Docker](https://img.shields.io/badge/Docker-FFFFFF?style=for-the-badge&logo=docker)
 ![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel)
 
 ---
@@ -18,7 +19,7 @@ A **multimodal conversational AI system** that integrates text and image underst
 
 ## 🚀 Overview
 
-Athena Conversational AI Copilot is designed to act as an intelligent assistant capable of handling **contextual text queries**, **image-based understanding**, and **knowledge retrieval** from custom data sources.
+Athena Conversational AI Research Copilot is designed to act as an intelligent assistant capable of handling **contextual text queries**, **image-based understanding**, and **knowledge retrieval** from custom data sources.
 
 The project combines **FastAPI**, **Pinecone**, **GROQ**, and **MongoDB** for backend intelligence, while the **Next.js + TypeScript** frontend delivers a sleek chat interface for human-AI interaction.
 
@@ -28,6 +29,30 @@ The system leverages:
 - **Pinecone** for semantic vector retrieval
 - **GROQ** for natural language reasoning and multimodal generation
 - **Next.js** for a clean, reactive, and responsive chat interface
+
+---
+
+## 🧠 Core Features
+
+- **RAG (Retrieval-Augmented Generation)** pipeline using Pinecone for context retrieval
+
+- **Embedding vector generation** – Semantic representation for context-rich understanding
+
+- **Query expansion & word tokenization** – Enhanced Search precision and NLP processing
+
+- **Multimodal understanding** — supports both text and image inputs
+
+- **Conversational memory** stored in MongoDB
+
+- **Dynamic chat folder and message** management
+
+- **Clerk authentication** for secure user sessions
+
+- **Real-time streaming responses** from backend to frontend using Server-Sent Events (SSE)
+
+- **Dockerized backend** for easy deployment
+
+- **Modern Next.js UI** with responsive, animated chat experience
 
 ---
 
@@ -129,26 +154,6 @@ MONGO_URI=your_mongodb_connection_string
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
 CLERK_SECRET_KEY=your_clerk_secret_key
 ```
-
----
-
-## 🧠 Core Features
-
-- **RAG (Retrieval-Augmented Generation)** pipeline using Pinecone for context retrieval
-
-- **Multimodal understanding** — supports both text and image inputs
-
-- **Conversational memory** stored in MongoDB
-
-- **Dynamic chat folder and message** management
-
-- **Clerk authentication** for secure user sessions
-
-- **Real-time streaming responses** from backend to frontend using Server-Sent Events (SSE)
-
-- **Dockerized backend** for easy deployment
-
-- **Modern Next.js UI** with responsive, animated chat experience
 
 ---
 
