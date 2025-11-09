@@ -57,9 +57,9 @@ export default function Home() {
           }}
           className="mx-auto w-[70vw] md:w-full max-w-2xl py-2 text-center text-lg font-normal text-neutral-600 dark:text-neutral-400"
         >
-          With Athena, you can launch your website in hours, not days. Try our
-          best in class, state of the art, cutting edge AI tools to get your
-          website up.
+          With Athena, you can enhance your search experience, especially built to serve
+          research purposes. Try our best in class, all-in-one research
+          companion for smarter, faster insights.
         </motion.p>
         <motion.div
           initial={{
