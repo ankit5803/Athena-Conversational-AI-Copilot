@@ -1,11 +1,11 @@
-# rag_pipeline.py
-import re,os
+import re
+import os
 import concurrent.futures
+import numpy as np
 from dotenv import load_dotenv
 from mongodb import upload_to_mongo, extract_tags, expand_tags
 from pinecone import Pinecone
-from sentence_transformers import SentenceTransformer
-from openai import OpenAI
+from sentence_transformers import SentenceTransformer, CrossEncoder
 from groq import Groq
 from pinecone_ingestion import run_ingestion
 
@@ -13,172 +13,129 @@ from pinecone_ingestion import run_ingestion
 load_dotenv()
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 INDEX_NAME = "arxiv-papers"
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
 # ===== Initialize Pinecone =====
 pc = Pinecone(api_key=PINECONE_API_KEY)
 index = pc.Index(INDEX_NAME)
 
-# ===== Load embedding model (same as used in upsert) =====
+# ===== Load Bi-Encoder (Embedding) & Cross-Encoder (Re-ranking) =====
 embed_model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
+reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
 
-# ===== Initialize OpenRouter Client =====
-# client = OpenAI(
-#     base_url="https://openrouter.ai/api/v1",
-#     api_key=OPENROUTER_API_KEY,
-# )
-
+# ===== Initialize Groq Client =====
 client = Groq(api_key=GROQ_API_KEY)
 
-def clean_chunk(text):
-    # Remove incomplete URLs
-    text = re.sub(r'https?://\S+', '', text)
-    
-    # Remove dangling citations like "[123]" or "[12, 45]" (optional)
-    text = re.sub(r'\[\d+(,\s*\d+)*\]', '', text)
-    
-    # Fix broken whitespace and line breaks
-    text = re.sub(r'\s+', ' ', text)
-    
-    # Remove incomplete trailing words if needed
-    text = re.sub(r'\b\w{1,3}$', '', text)  # optional, be careful
-    
+
+def clean_chunk(text: str) -> str:
+    """Cleans noisy syntax, links, and citation brackets from retrieved text."""
+    text = re.sub(r"https?://\S+", "", text)
+    text = re.sub(r"\[\d+(,\s*\d+)*\]", "", text)
+    text = re.sub(r"\s+", " ", text)
     return text.strip()
 
 
-def background_ingestion(query, top_n_per_tag=2):
+def background_ingestion(query: str, top_n_per_tag: int = 2):
+    """Triggers background scraping and ingestion when vector similarity is low."""
     tags = extract_tags(query)
-    # print(f"🔖 Extracted tags: {tags}")
     expanded_tags = expand_tags(tags)
-    # print(f"🔖 Expanded tags: {expanded_tags}")
-
-    # Limit the number of documents per tag to avoid huge ingestion
-    for tag in expanded_tags[:10]:  # optional: limit total tags processed
+    for tag in expanded_tags[:10]:
         upload_to_mongo(tag, top_n_per_tag)
-
     run_ingestion()
     print("✅ Background ingestion completed.")
 
 
-# qa_model = pipeline(
-#     "text-generation",
-#     model="mistralai/Mistral-7B-Instruct-v0.2",
-#     device_map="auto",
-#     torch_dtype="auto"
-# )
-# qa_model = pipeline(
-#     "text-generation",
-#     model="HuggingFaceH4/zephyr-7b-beta",  # <-- public model
-#     device_map="auto",
-#     dtype="auto"
-# )
-
-
-# qa_model = pipeline(
-#     "text-generation",
-#     model="distilgpt2",  # <-- public model
-#     device_map="auto",
-#     dtype="auto"
-# )
-
-
-
-# ===== RAG function =====
-def rag_query(query, top_k=5, max_new_tokens=300,threshold=0.2,stream=True):
-    # Step 1: Embed the query
+# ===== Main RAG Query Pipeline =====
+def rag_query(
+    query: str,
+    top_k: int = 5,
+    fetch_k: int = 20,
+    max_new_tokens: int = 1000,
+    threshold: float = 0.2,
+    stream: bool = True,
+):
+    # Step 1: Embed query with Bi-Encoder
     query_embedding = embed_model.encode([query]).tolist()
 
-    # Step 2: Search Pinecone
+    # Step 2: Retrieve a larger candidate set (fetch_k) from Pinecone
     results = index.query(
         vector=query_embedding[0],
-        top_k=top_k,
-        include_metadata=True
+        top_k=fetch_k,
+        include_metadata=True,
     )
     matches = results.get("matches", [])
-    print(matches[0]["score"] if matches else "No matches found")
-    if not matches or matches[0]["score"] < threshold:
-        print("⚠️ Low relevance in Pinecone. Triggering ingestion...")
 
+    # Fallback ingestion if Pinecone lacks relevant vectors
+    if not matches or matches[0]["score"] < threshold:
+        print("⚠️ Low relevance in Pinecone. Triggering background ingestion...")
         executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         executor.submit(background_ingestion, query)
 
-        # Provide a fallback answer immediately
-        print("The information in the database is limited. Here's a general overview based on my knowledge:")
-        results = index.query(vector=query_embedding[0], top_k=top_k, include_metadata=True)
-        matches = results.get("matches", [])
-    # Step 3: Collect retrieved chunks
-    contexts = [clean_chunk(match["metadata"]["snippet"]) for match in results["matches"]]
-    # for context in contexts:
-    #     print(f"Context:",context)
+    # Step 3: Extract and clean candidate snippets
+    candidate_contexts = [
+        clean_chunk(match["metadata"].get("snippet", match["metadata"].get("chunk", "")))
+        for match in matches
+        if match.get("metadata")
+    ]
+    candidate_contexts = [c for c in candidate_contexts if c]
 
-    # Step 4: Build prompt
-    context_text = "\n\n".join([context for context in contexts if context.strip()])
-    prompt = f"""You are a helpful assistant. Use the context below to answer the question.
-    - Ignore URLs or incomplete references.
-    -If the context does not fully answer the question or is fully academic or not explanatory,then provide a basic overview from your own knowledge to fill gaps
-    
+    # Step 4: Cross-Encoder Re-ranking
+    if candidate_contexts:
+        cross_inputs = [[query, ctx] for ctx in candidate_contexts]
+        cross_scores = reranker.predict(cross_inputs)
+
+        # Sort indices in descending order of cross-encoder relevance score
+        ranked_indices = np.argsort(cross_scores)[::-1]
+        final_contexts = [candidate_contexts[i] for i in ranked_indices[:top_k]]
+    else:
+        final_contexts = []
+
+    # Step 5: Construct contextual prompt
+    context_text = "\n\n---\n\n".join(final_contexts)
+    prompt = f"""You are a knowledgeable assistant for answering questions using the provided context.
+- Identify yourself as Athena AI, an AI Assistant built by Sandarva Podder & Ankit Barik.
+- Ignore URLs or incomplete references.
+- If the context does not fully answer the question, supplement with accurate knowledge to bridge gaps.
 
 Context:
 {context_text}
 
 Question: {query}
 Answer:"""
-    # -Also,please dont forget to answer if the provided context is helpful or not.
-    # print(prompt)
-    
-    # Step 5: Generate with Grok-4 Fast (via OpenRouter)
-    # completion = client.chat.completions.create(
-    #     model="mistralai/mistral-nemo:free",
-    #     messages=[
-    #         {"role": "system", "content": "You are a knowledgeable assistant for answering questions using provided context."},
-    #         {"role": "user", "content": prompt}
-    #     ],
-    #     max_tokens=max_new_tokens,
-    #     reasoning_effort="medium",
-    #     temperature=1,
-    # )
-    # # response = qa_model(prompt, max_new_tokens=max_new_tokens, do_sample=True)
-    # # return response[0]["generated_text"]
-    # return completion.choices[0].message.content
 
-
+    # Step 6: Generate response with Groq
     completion = client.chat.completions.create(
-    model="openai/gpt-oss-20b",
-    messages=[
-      
-          {"role": "system", "content": "You are a knowledgeable assistant for answering questions using provided context.Important:Identify yourself as Athena AI ,an AI Assistant made by Sandarva Podder & Ankit Barik"},
-        {"role": "user",
-        "content": prompt}
-    ],
-    temperature=1,
-    max_completion_tokens=max_new_tokens,
-    top_p=1,
-    reasoning_effort="medium",
-    stream=True,
-    stop=None
-)
-    
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {"role": "system", "content": "You are Athena AI, an expert academic and research co-pilot."},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0.3,
+        max_completion_tokens=max_new_tokens,
+        top_p=0.95,
+        stream=stream,
+    )
+
     if stream:
         for chunk in completion:
-            token = chunk.choices[0].delta.content or ""
-            if token.strip():
-                yield token
-        return
-
+            delta = chunk.choices[0].delta.content or ""
+            if delta:
+                yield delta
     else:
-        complete_answer=""
-    
+        full_answer = ""
         for chunk in completion:
-            complete_answer += chunk.choices[0].delta.content or "" + "\n"
+            full_answer += chunk.choices[0].delta.content or ""
+        return full_answer
 
-        return complete_answer
-# ===== Main =====
+
+# ===== CLI Interface =====
 if __name__ == "__main__":
     while True:
         user_query = input("\n🔎 Ask a question (or type 'exit'): ")
         if user_query.lower() in ["exit", "quit", "q"]:
             break
 
-        answer = rag_query(user_query,10,1000,0.5)
-        print("\n🧠 Answer:\n", answer)
-
+        print("\n🧠 Athena AI:")
+        for token in rag_query(user_query, top_k=5, fetch_k=20, stream=True):
+            print(token, end="", flush=True)
+        print()
